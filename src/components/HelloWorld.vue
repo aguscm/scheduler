@@ -1,4 +1,5 @@
 <template>
+<calendar-week></calendar-week>
   <div class="hello">
     <h1>{{ msg }}</h1>
     <p>
@@ -31,12 +32,16 @@
 </template>
 
 <script>
+import CalendarWeek from "./CalendarWeek.vue"
+
 export default {
+  components: { CalendarWeek }, 
   name: 'HelloWorld',
   props: {
     msg: String
   }
 }
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
