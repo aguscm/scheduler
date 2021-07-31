@@ -1,11 +1,14 @@
 <template>
+  <p @click="showModal">Selected event {{ selectedEvent }}</p>
   {{ events[0] }}
   {{ selectedEvent }}
   <div class="container">
     <vue-cal
       :time-from="7 * 60"
       :time-to="22 * 60"
+      :time-step="30"
       :disable-views="['years', 'year']"
+      :snap-to-time="15"
       hide-weekends
       locale="ca"
       :editable-events="{
@@ -13,93 +16,99 @@
         drag: true,
         resize: true,
         delete: false,
-        create: false,
+        create: true,
       }"
       :events="events"
       @event-drop="onEventDragCreate"
-
+      @event-click="onEventClick"
     />
   </div>
 
-  <calendar-week></calendar-week>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a>
-      </li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a>
-      </li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+  <!-- Button trigger modal -->
+  <button
+    type="button"
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#eventDetailsModal"
+  >
+    Launch demo modal
+  </button>
+
+  <!-- Modal -->
+  <div
+    class="modal fade"
+    id="eventDetailsModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Event details</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form action="">
+            <div class="mb-3 row">
+              <label for="name" class="col-sm-2 col-form-label"
+                >Name <span class="text-danger">*</span></label
+              >
+              <div class="col-sm-10">
+                <input
+                  class="form-control"
+                  type="text"
+                  v-model="selectedEvent.title"
+                  placeholder="Write here the event's name"
+                />
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="name" class="col-sm-2 col-form-label"
+                >Start date <span class="text-danger">*</span></label
+              >
+              <div class="col-sm-10">
+                <input
+                  class="form-control"
+                  type="date"
+                  v-model="selectedEvent.start"
+                  placeholder="Write here Foundation's name"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import CalendarWeek from "./CalendarWeek.vue";
+//import $ from "jquery";
 import VueCal from "vue-cal";
+import { Modal } from "bootstrap";
 import "vue-cal/dist/vuecal.css";
 import "vue-cal/dist/drag-and-drop.js";
 import "vue-cal/dist/i18n/ca.js";
 import "vue-cal/dist/vuecal.css";
 
 export default {
-  components: { CalendarWeek, VueCal },
+  components: { VueCal },
   name: "HelloWorld",
   props: {
     msg: String,
@@ -119,28 +128,28 @@ export default {
           contentFull:
             "My shopping list is rather long:<br><ul><li>Avocados</li><li>Tomatoes</li><li>Potatoes</li><li>Mangoes</li></ul>", // Custom attribute.
           class: "leisure",
-          id: "ff"
+          id: "ff",
         },
         {
-          start: "2021-07-27 10:00",
+          start: "2021-07-27 9:00",
           end: "2021-07-27 15:00",
           title: "Golf with John",
           icon: "golf_course", // Custom attribute.
           content: "Do I need to tell how many holes?",
           contentFull: "Okay.<br>It will be a 18 hole golf course.", // Custom attribute.
           class: "sport",
-          id: "fg"
+          id: "fg",
         },
       ],
     };
   },
   methods: {
-    onEventClick(event, e) {
+    async onEventClick(event) {
       this.selectedEvent = event;
-      this.showDialog = true;
+      this.showModal();
 
       // Prevent navigating to narrower view (default vue-cal behavior).
-      e.stopPropagation();
+      //e.stopPropagation();
     },
     async onEventDragCreate(event) {
       // let id = await this.api.createEvent(
@@ -150,10 +159,17 @@ export default {
       // event.data = { id: id };
       // return event;
       console.log(event.event);
-      var index = this.events.findIndex(foundEvent => foundEvent.id == event.event.id);
+      var index = this.events.findIndex(
+        (foundEvent) => foundEvent.id == event.event.id
+      );
       this.events[index] = event.event;
       console.log(index);
-
+    },
+    async showModal() {
+      var eventDetailsModal = new Modal(
+        document.getElementById("eventDetailsModal")
+      );
+      eventDetailsModal.toggle();
     },
   },
 };
