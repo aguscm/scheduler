@@ -1,6 +1,6 @@
 <template>
   <p @click="showModal">Selected event {{ selectedEvent }}</p>
-  {{ events[0] }}
+  {{ events }}
   {{ selectedEvent }}
   <div class="container">
     <vue-cal
@@ -18,9 +18,10 @@
         delete: false,
         create: true,
       }"
-      :events="events"
+      :events="!loading? events : undefined"
       @event-drop="onEventDragCreate"
       @event-click="onEventClick"
+      @ready="loadEvents" 
     />
   </div>
 
@@ -75,7 +76,7 @@
               <div class="col-sm-10">
                 <input
                   class="form-control"
-                  type="date"
+                  type="text"
                   v-model="selectedEvent.start"
                   placeholder="Write here Foundation's name"
                 />
@@ -91,7 +92,14 @@
           >
             Close
           </button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-dismiss="modal"
+            @click="updateEvent(selectedEvent)"
+          >
+            Save changes
+          </button>
         </div>
       </div>
     </div>
@@ -99,7 +107,7 @@
 </template>
 
 <script>
-//import $ from "jquery";
+import API from "@/api/api.js";
 import VueCal from "vue-cal";
 import { Modal } from "bootstrap";
 import "vue-cal/dist/vuecal.css";
@@ -113,39 +121,43 @@ export default {
   props: {
     msg: String,
   },
-  created() {},
+  created() {
+
+  },
   data() {
     return {
       selectedEvent: "",
+      //Loading and error variables
+      loading: true,
+      error: false,
+      errorMsg: "",
+      /**/
       showDialog: true,
-      events: [
-        {
-          start: "2021-07-26 14:00",
-          end: "2021-07-26 18:00",
-          title: "Need to go shopping",
-          icon: "shopping_cart", // Custom attribute.
-          content: "Click to see my shopping list",
-          contentFull:
-            "My shopping list is rather long:<br><ul><li>Avocados</li><li>Tomatoes</li><li>Potatoes</li><li>Mangoes</li></ul>", // Custom attribute.
-          class: "leisure",
-          id: "ff",
-        },
-        {
-          start: "2021-07-27 9:00",
-          end: "2021-07-27 15:00",
-          title: "Golf with John",
-          icon: "golf_course", // Custom attribute.
-          content: "Do I need to tell how many holes?",
-          contentFull: "Okay.<br>It will be a 18 hole golf course.", // Custom attribute.
-          class: "sport",
-          id: "fg",
-        },
-      ],
+      events: ""
     };
   },
   methods: {
+    loadEvents() {
+      //Loads the main foundations database
+      this.foundations = "";
+      this.loading = true;
+      return (
+        API.getEvents()
+          .then(
+            (response) => (
+              (this.events = response), (this.loading = false)
+            )
+          )
+          //If error
+          .catch(
+            (err) => (
+              console.log(err), (this.isError = true), (this.errorMsg = err)
+            )
+          )
+      );
+    },
     async onEventClick(event) {
-      this.selectedEvent = event;
+      this.selectedEvent = this.events[this.findEventInEvents(event)];
       this.showModal();
 
       // Prevent navigating to narrower view (default vue-cal behavior).
@@ -159,11 +171,19 @@ export default {
       // event.data = { id: id };
       // return event;
       console.log(event.event);
+    },
+    findEventInEvents(event) {
+      console.log(event.id);
       var index = this.events.findIndex(
         (foundEvent) => foundEvent.id == event.event.id
       );
+      return index;
+    },
+    updateEvent(event) {
+      var index = this.events.findIndex(
+        (foundEvent) => foundEvent.id == event.id
+      );
       this.events[index] = event.event;
-      console.log(index);
     },
     async showModal() {
       var eventDetailsModal = new Modal(
