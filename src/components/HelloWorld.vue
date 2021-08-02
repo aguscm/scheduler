@@ -5,6 +5,7 @@
     class="btn btn-primary"
     data-bs-toggle="modal"
     data-bs-target="#eventDetailsModal"
+    @click="clearSelectedEvent(), (isNewEvent = true)"
   >
     New event
   </button>
@@ -18,13 +19,13 @@
       hide-weekends
       locale="ca"
       :editable-events="{
-        title: true,
+        title: false,
         drag: true,
         resize: true,
         delete: false,
         create: true,
       }"
-      :events="!loading ? events : undefined"
+      :events="!loadingEvents ? events : undefined"
       @event-drop="onEventDragCreate"
       @event-click="onEventClick"
       @ready="loadEvents"
@@ -53,7 +54,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">Event details</h5>
-          <p>Created on {{formatDate(selectedEvent.creationDate)}}</p>
+          <p>Created on {{ formatDate(selectedEvent.creationDate) }}</p>
         </div>
         <div class="modal-body">
           <form action="">
@@ -144,12 +145,22 @@
             Close
           </button>
           <button
+            v-if="isNewEvent"
             type="button"
             class="btn btn-primary"
             data-bs-dismiss="modal"
             @click="newEvent(selectedEvent)"
           >
             Create event
+          </button>
+          <button
+            v-if="!isNewEvent"
+            type="button"
+            class="btn btn-primary"
+            data-bs-dismiss="modal"
+            @click="editEvent(selectedEvent.id, selectedEvent)"
+          >
+            Edit event
           </button>
         </div>
       </div>
@@ -178,6 +189,7 @@ export default {
   data() {
     return {
       selectedEvent: {
+        id: "",
         calendar: "",
         title: "",
         start: "",
@@ -195,8 +207,10 @@ export default {
       startDateForm: "",
       startTimeForm: "",
       endTimeForm: "",
+      isNewEvent: false,
       //Loading and error variables
-      loading: true,
+      loadingEvents: true,
+      loadingCalendars: true,
       error: false,
       errorMsg: "",
       /**/
@@ -205,31 +219,54 @@ export default {
       calendars: "",
     };
   },
+  watch: {
+    loadingEvents: {
+      deep: false,
+      handler() {
+        if (!this.loadingEvents && !this.loadingCalendars) {
+          this.colorEventsWCalendars();
+        }
+      },
+    },
+  },
+  computed: {
+    eventsByCalendar: function () {
+      return Date.now();
+    },
+  },
   methods: {
-    loadEvents() {
+    async loadEvents() {
       //Loads the main foundations database
       this.foundations = "";
-      this.loading = true;
+      this.loadingEvents = true;
       return (
         API.getEvents()
           .then(
-            (response) => ((this.events = response), (this.loading = false))
+            (response) => (
+              (this.events = response), (this.loadingEvents = false)
+            )
           )
           //If error
           .catch(
             (err) => (
-              console.log(err), (this.isError = true), (this.errorMsg = err)
+              console.log(err),
+              (this.isError = true),
+              (this.loadingEvents = false),
+              (this.errorMsg = err)
             )
           )
       );
     },
-    loadCalendars() {
+    async loadCalendars() {
       //Loads the main foundations database
-      this.foundations = "";
-      this.loading = true;
+      this.calendars = "";
+      this.loadingCalendars = true;
       return (
         API.getCalendars()
-          .then((response) => (this.calendars = response))
+          .then(
+            (response) => (this.calendars = response),
+            (this.loadingCalendars = false)
+          )
           //If error
           .catch(
             (err) => (
@@ -242,6 +279,7 @@ export default {
       this.clearSelectedEvent();
       for (var index in this.events) {
         if (this.events[index].id == id) {
+          this.selectedEvent.id = this.events[index].id;
           this.selectedEvent.calendar = this.events[index].calendar;
           this.selectedEvent.title = this.events[index].title;
           this.selectedEvent.start = this.events[index].start;
@@ -280,14 +318,21 @@ export default {
         .then(() => this.loadEvents())
         .catch((err) => console.log(err));
     },
+    //Send a request to the server to create a new foundation
+    editEvent(eventId, event) {
+      return API.editEvent(eventId, event)
+        .then(() => this.loadEvents())
+        .catch((err) => console.log(err));
+    },
     formatDateInForm() {
       this.selectedEvent.start = this.startDateForm + " " + this.startTimeForm;
       this.selectedEvent.end = this.startDateForm + " " + this.endTimeForm;
     },
     async onEventClick(event) {
-      console.log(event.id);
+      console.log("event id is " + event.id);
       this.loadFormSelectedEvent(event.id);
       this.showModal();
+      this.isNewEvent = false; //Changes button of the form in an Edit format
 
       // Prevent navigating to narrower view (default vue-cal behavior).
       //e.stopPropagation();
@@ -308,6 +353,7 @@ export default {
       eventDetailsModal.toggle();
     },
     clearSelectedEvent() {
+      this.selectedEvent.id = "";
       this.selectedEvent.calendar = "";
       this.selectedEvent.title = "";
       this.selectedEvent.start = "";
@@ -318,12 +364,62 @@ export default {
       this.selectedEvent.icon = "";
       this.selectedEvent.creationDate = "";
       this.selectedEvent.applicant = "";
+
+      this.startDateForm = "";
+      this.startTimeForm = "";
+      this.endTimeForm = "";
+    },
+    async colorEventsWCalendars() {
+      //Creates a CSS Stylesheet
+      var sheet = (function () {
+        // Create the <style> tag
+        var style = document.createElement("style");
+
+        // WebKit hack
+        style.appendChild(document.createTextNode(""));
+
+        // Add the <style> element to the page
+        document.head.appendChild(style);
+
+        return style.sheet;
+      })();
+
+      //For each event of the events data
+      this.events.forEach((event) => {
+        console.log("Event " + event);
+
+        //Adds a new class to the "class" key of the event data
+        event.class = event.class.concat(" calendar" + event.calendar);
+
+        //Searchs for the id of the event's calendar and creates a CSS rule for the color of that calendar
+        this.calendars.forEach((calendar) => {
+          if (calendar.id == event.calendar) {
+            var styles = ".calendar" + calendar.id + " {";
+            styles += "background-color:" + calendar.color;
+            styles += "!important;";
+            styles += "}";
+
+            sheet.insertRule(styles, 0);
+          }
+        });
+      });
     },
   },
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
+<style>
+/* // .calendar0 {
+//   background-color: #b97742 !important;
+// } */
+
+.vuecal__event {
+  border-radius: 5px;
+  margin-right: 5px;
+}
+</style>
+
 <style scoped>
 h3 {
   margin: 40px 0 0;
