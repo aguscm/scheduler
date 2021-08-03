@@ -1,22 +1,87 @@
 <template>
-  <p @click="showModal">Selected event {{ selectedEvent }}</p>
-  <button
-    type="button"
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#eventDetailsModal"
-    @click="clearSelectedEvent(), (isNewEvent = true)"
-  >
-    New event
-  </button>
   <div class="container">
+    <button
+      class="btn btn-primary"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#offcanvasExample"
+      aria-controls="offcanvasExample"
+    >
+      Filters
+    </button>
+
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="offcanvasExample"
+      aria-labelledby="offcanvasExampleLabel"
+    >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasExampleLabel">Filters</h5>
+        <button
+          type="button"
+          class="btn-close text-reset"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body">
+        <div>
+          <form @submit.prevent v-on:change="filterEvents()">
+            <div>
+              <p>Filter by calendar</p>
+              <div
+                class="form-check"
+                v-for="calendar in calendars"
+                :key="calendar.id"
+              >
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  :value="calendar.id"
+                  :id="'filterCalendar' + calendar.id"
+                  v-model="checkedCalendars"
+                />
+                <label class="form-check-label" for="flexCheckChecked">
+                  {{ calendar.name }}
+                </label>
+              </div>
+            </div>
+            <hr>
+            <div>
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="switch-show-weekends"
+                  @click="showWeekends = !showWeekends"
+                />
+                <label class="form-check-label" for="flexSwitchCheckDefault"
+                  >Show weekends</label
+                >
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#eventDetailsModal"
+      @click="clearSelectedEvent(), (isNewEvent = true)"
+    >
+      New event
+    </button>
+
     <vue-cal
       :time-from="7 * 60"
       :time-to="22 * 60"
       :time-step="30"
       :disable-views="['years', 'year']"
       :snap-to-time="15"
-      hide-weekends
+      :hide-weekends="!showWeekends"
       locale="ca"
       :editable-events="{
         title: false,
@@ -25,7 +90,7 @@
         delete: false,
         create: true,
       }"
-      :events="!loadingEvents ? events : undefined"
+      :events="!loadingEvents ? eventsFiltered : undefined"
       @event-drop="onEventDragCreate"
       @event-click="onEventClick"
       @ready="loadEvents"
@@ -183,7 +248,7 @@ export default {
   props: {
     msg: String,
   },
-  created() {
+  async created() {
     this.loadCalendars();
   },
   data() {
@@ -203,6 +268,10 @@ export default {
         applicant: "",
       },
 
+      //Filters
+      checkedCalendars: [],
+      showWeekends: false,
+
       //Form
       startDateForm: "",
       startTimeForm: "",
@@ -216,6 +285,7 @@ export default {
       /**/
       showDialog: true,
       events: "",
+      eventsFiltered: "",
       calendars: "",
     };
   },
@@ -224,26 +294,29 @@ export default {
       deep: false,
       handler() {
         if (!this.loadingEvents && !this.loadingCalendars) {
+          //Color the events with the color of each calendar
           this.colorEventsWCalendars();
+          //check all the boxes of the checkedCalendars variable (filter form)
+          this.calendars.forEach((calendar) =>
+            this.checkedCalendars.push(calendar.id)
+          );
         }
       },
-    },
-  },
-  computed: {
-    eventsByCalendar: function () {
-      return Date.now();
     },
   },
   methods: {
     async loadEvents() {
       //Loads the main foundations database
-      this.foundations = "";
+      this.events = "";
+      this.eventsFiltered = "";
       this.loadingEvents = true;
       return (
         API.getEvents()
           .then(
             (response) => (
-              (this.events = response), (this.loadingEvents = false)
+              (this.events = response),
+              (this.loadingEvents = false),
+              (this.eventsFiltered = response)
             )
           )
           //If error
@@ -273,6 +346,12 @@ export default {
               console.log(err), (this.isError = true), (this.errorMsg = err)
             )
           )
+      );
+    },
+    filterEvents() {
+      //Return the events that are in the calendar checked by the user
+      this.eventsFiltered = this.events.filter((event) =>
+        this.checkedCalendars.includes(event.calendar)
       );
     },
     loadFormSelectedEvent(id) {
@@ -386,8 +465,6 @@ export default {
 
       //For each event of the events data
       this.events.forEach((event) => {
-        console.log("Event " + event);
-
         //Adds a new class to the "class" key of the event data
         event.class = event.class.concat(" calendar" + event.calendar);
 
