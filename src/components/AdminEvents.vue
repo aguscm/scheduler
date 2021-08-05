@@ -1,14 +1,26 @@
 <template>
   <div class="container">
-    <button
-      class="btn btn-primary"
-      type="button"
-      data-bs-toggle="offcanvas"
-      data-bs-target="#offcanvasExample"
-      aria-controls="offcanvasExample"
-    >
-      Filters
-    </button>
+    <div class="notification-events"></div>
+    <div class="buttons d-flex">
+      <button
+        class="btn p-2"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasExample"
+        aria-controls="offcanvasExample"
+      >
+        <font-awesome-icon :icon="['fa', 'filter']" /> Filters 
+      </button>
+      <button
+        type="button"
+        class="btn ms-auto p-2"
+        data-bs-toggle="modal"
+        data-bs-target="#eventDetailsModal"
+        @click="clearSelectedEvent(), (isNewEvent = true)"
+      >
+        <font-awesome-icon :icon="['fa', 'calendar-plus']" /> New event
+      </button>
+    </div>
 
     <div
       class="offcanvas offcanvas-start"
@@ -47,7 +59,7 @@
                 </label>
               </div>
             </div>
-            <hr>
+            <hr />
             <div>
               <div class="form-check form-switch">
                 <input
@@ -65,17 +77,9 @@
         </div>
       </div>
     </div>
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#eventDetailsModal"
-      @click="clearSelectedEvent(), (isNewEvent = true)"
-    >
-      New event
-    </button>
 
     <vue-cal
+      class="vue-cal"
       :time-from="7 * 60"
       :time-to="22 * 60"
       :time-step="30"
@@ -96,16 +100,6 @@
       @ready="loadEvents"
     />
   </div>
-
-  <!-- Button trigger modal -->
-  <button
-    type="button"
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#eventDetailsModal"
-  >
-    Launch demo modal
-  </button>
 
   <!-- Modal -->
   <div
@@ -244,7 +238,7 @@ import "vue-cal/dist/vuecal.css";
 
 export default {
   components: { VueCal },
-  name: "HelloWorld",
+  name: "AdminEvents",
   props: {
     msg: String,
   },
@@ -490,14 +484,30 @@ export default {
 /* // .calendar0 {
 //   background-color: #b97742 !important;
 // } */
-
+.vue-cal {
+  background-color: #ffffffa1;
+  border-radius: 0.5em;
+  margin-top: 0.5em;
+  padding: 0.5em;
+}
 .vuecal__event {
+  width: 95% !important;
   border-radius: 5px;
-  margin-right: 5px;
+  margin-right: 2.5%;
+  margin-left: 2.5%;
 }
 </style>
 
-<style scoped>
+<style scoped lang="scss">
+@import "@/styles/global.scss";
+button {
+  background-color: $base-color;
+  color: white;
+}
+button:hover {
+  background-color: $dark-color;
+  color: white;
+}
 h3 {
   margin: 40px 0 0;
 }

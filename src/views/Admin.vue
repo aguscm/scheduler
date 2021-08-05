@@ -1,0 +1,197 @@
+<template>
+  <div class="row">
+    <nav id="sidebar" class="col-2 col-sm-1 col-lg-2">
+      <div class="d-flex align-items-start admin-list position-fixed">
+        <div
+          class="nav flex-column nav-pills me-3"
+          id="v-pills-tab"
+          role="tablist"
+          aria-orientation="vertical"
+        >
+          <button
+            class="nav-link active"
+            id="v-pills-home-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#v-pills-home"
+            type="button"
+            role="tab"
+            aria-controls="v-pills-home"
+            aria-selected="true"
+          >
+            <font-awesome-icon
+              class="icon-logo align-middle"
+              :icon="['fa', 'calendar-alt']"
+            />
+            <span class="font-weight-bold align-middle d-none d-lg-inline"
+              >Events</span
+            >
+          </button>
+          <hr />
+          <button
+            class="nav-link"
+            id="v-pills-profile-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#v-pills-profile"
+            type="button"
+            role="tab"
+            aria-controls="v-pills-profile"
+            aria-selected="false"
+          >
+            <span class="position-relative">
+              <font-awesome-icon
+                class="icon-logo align-middle"
+                :icon="['fa', 'clipboard-list']"
+              />
+              <span
+                class="
+                  position-absolute
+                  top-0
+                  start-50
+                  translate-start
+                  p-1
+                  bg-danger
+                  border border-light
+                  rounded-circle
+                "
+              >
+                <span class="visually-hidden">unread requests</span>
+              </span>
+            </span>
+
+            <span
+              class="
+                font-weight-bold
+                align-middle
+                d-none d-lg-inline
+                position-relative
+              "
+              >Requests
+            </span>
+          </button>
+          <hr />
+          <button
+            class="nav-link"
+            id="v-pills-messages-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#v-pills-messages"
+            type="button"
+            role="tab"
+            aria-controls="v-pills-messages"
+            aria-selected="false"
+          >
+            <font-awesome-icon
+              class="icon-logo align-middle"
+              :icon="['fa', 'calendar-check']"
+            />
+            <span class="font-weight-bold align-middle d-none d-lg-inline"
+              >Calendars</span
+            >
+          </button>
+        </div>
+      </div>
+    </nav>
+    <div
+      class="tab-content admin-list col-10 col-sm-11 col-lg-10"
+      id="v-pills-tabContent"
+    >
+      <div
+        class="tab-pane fade show active"
+        id="v-pills-home"
+        role="tabpanel"
+        aria-labelledby="v-pills-home-tab"
+      >
+        <AdminEvents />
+      </div>
+      <div
+        class="tab-pane fade"
+        id="v-pills-profile"
+        role="tabpanel"
+        aria-labelledby="v-pills-profile-tab"
+      >
+        ...
+      </div>
+      <div
+        class="tab-pane fade"
+        id="v-pills-messages"
+        role="tabpanel"
+        aria-labelledby="v-pills-messages-tab"
+      >
+        ...
+      </div>
+      <div
+        class="tab-pane fade"
+        id="v-pills-settings"
+        role="tabpanel"
+        aria-labelledby="v-pills-settings-tab"
+      >
+        ...
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import AdminEvents from "@/components/AdminEvents.vue";
+
+export default {
+  name: "Admin",
+  components: {
+    AdminEvents,
+  },
+};
+</script>
+
+<style scoped lang="scss">
+@import "@/styles/global.scss";
+.wrapper {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+#sidebar {
+  color: $text-color;
+  background-color: white;
+  padding: 1em 1em 1em 2em !important;
+  // margin-right: 1em;
+  -webkit-box-shadow: 5px 10px 15px -4px rgba(0, 0, 0, 0.42);
+  box-shadow: 5px 10px 15px -4px rgba(0, 0, 0, 0.42);
+  min-height: 100vh;
+  overflow: hidden;
+  hr {
+    color: transparent !important;
+    margin: 1em;
+  }
+}
+.admin-list {
+  margin: 1em auto auto auto;
+  overflow: hidden;
+  li {
+    // margin-bottom: 3em;
+    :hover {
+      color: $base-color;
+    }
+  }
+  a {
+    text-decoration: none;
+    color: $text-color;
+  }
+  svg {
+    margin-right: 1em;
+    font-size: 1.5em;
+  }
+}
+
+.nav-link {
+  background-color: transparent !important;
+  color: $dark-color !important;
+  padding: 0 !important;
+  text-align: left;
+}
+.nav-pills .active {
+  color: $base-color !important;
+}
+.nav-link:hover {
+  color: $base-color !important;
+}
+</style>
