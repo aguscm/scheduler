@@ -5,3 +5,14 @@
 $base-color: #5d81f5;
 $dark-color: #363d54;
 $text-color: rgb(166, 160, 177);
+
+//Global styles
+.white-background{
+    background-color: $base-color !important;
+    color: white !important;
+}
+
+.white-background:hover {
+    background-color: $dark-color !important;
+    color: white !important;
+}

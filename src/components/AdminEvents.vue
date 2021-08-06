@@ -1,38 +1,37 @@
 <template>
   <div class="container">
-    <div class="notification-events"></div>
     <div class="buttons d-flex">
       <button
-        class="btn p-2"
         type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#offcanvasExample"
-        aria-controls="offcanvasExample"
-      >
-        <font-awesome-icon :icon="['fa', 'filter']" /> Filters 
-      </button>
-      <button
-        type="button"
-        class="btn ms-auto p-2"
+        class="btn p-2 white-background"
         data-bs-toggle="modal"
         data-bs-target="#eventDetailsModal"
         @click="clearSelectedEvent(), (isNewEvent = true)"
       >
         <font-awesome-icon :icon="['fa', 'calendar-plus']" /> New event
       </button>
+      <button
+        class="btn ms-auto p-2 white-background"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasFilters"
+        aria-controls="offcanvasFilters"
+      >
+        <font-awesome-icon :icon="['fa', 'filter']" /> Filters
+      </button>
     </div>
 
     <div
-      class="offcanvas offcanvas-start"
+      class="offcanvas offcanvas-end"
       tabindex="-1"
-      id="offcanvasExample"
-      aria-labelledby="offcanvasExampleLabel"
+      id="offcanvasFilters"
+      aria-labelledby="offcanvasFiltersLabel"
     >
       <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasExampleLabel">Filters</h5>
+        <h5 class="offcanvas-title" id="offcanvasFiltersLabel">Filters</h5>
         <button
           type="button"
-          class="btn-close text-reset"
+          class="btn-close btn-close-white text-reset"
           data-bs-dismiss="offcanvas"
           aria-label="Close"
         ></button>
@@ -94,13 +93,14 @@
         delete: false,
         create: true,
       }"
-      :events="!loadingEvents ? eventsFiltered : undefined"
+      :events="events"
       @event-drop="onEventDragCreate"
       @event-click="onEventClick"
-      @ready="loadEvents"
+      @ready="colorEventsWCalendars(), checkCalendars()"
     />
   </div>
-
+  <!-- //@ready="loadEvents" -->
+  <!-- :events="!loadingEvents ? eventsFiltered : undefined" -->
   <!-- Modal -->
   <div
     class="modal fade"
@@ -113,7 +113,9 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">Event details</h5>
-          <p>Created on {{ formatDate(selectedEvent.creationDate) }}</p>
+          <p v-if="!isNewEvent">
+            Created on {{ formatDate(selectedEvent.creationDate) }}
+          </p>
         </div>
         <div class="modal-body">
           <form action="">
@@ -239,12 +241,8 @@ import "vue-cal/dist/vuecal.css";
 export default {
   components: { VueCal },
   name: "AdminEvents",
-  props: {
-    msg: String,
-  },
-  async created() {
-    this.loadCalendars();
-  },
+  props: ["eventsProp", "calendarsProp"],
+  emits: ["cal-ready"],
   data() {
     return {
       selectedEvent: {
@@ -278,12 +276,18 @@ export default {
       errorMsg: "",
       /**/
       showDialog: true,
-      events: "",
+      events: this.eventsProp,
       eventsFiltered: "",
-      calendars: "",
+      calendars: this.calendarsProp,
     };
   },
   watch: {
+    // events: {
+    //   deep: true,
+    //   handler() {
+    //     this.filterEvents();
+    //   },
+    // },
     loadingEvents: {
       deep: false,
       handler() {
@@ -299,52 +303,14 @@ export default {
     },
   },
   methods: {
-    async loadEvents() {
-      //Loads the main foundations database
-      this.events = "";
-      this.eventsFiltered = "";
-      this.loadingEvents = true;
-      return (
-        API.getEvents()
-          .then(
-            (response) => (
-              (this.events = response),
-              (this.loadingEvents = false),
-              (this.eventsFiltered = response)
-            )
-          )
-          //If error
-          .catch(
-            (err) => (
-              console.log(err),
-              (this.isError = true),
-              (this.loadingEvents = false),
-              (this.errorMsg = err)
-            )
-          )
-      );
-    },
-    async loadCalendars() {
-      //Loads the main foundations database
-      this.calendars = "";
-      this.loadingCalendars = true;
-      return (
-        API.getCalendars()
-          .then(
-            (response) => (this.calendars = response),
-            (this.loadingCalendars = false)
-          )
-          //If error
-          .catch(
-            (err) => (
-              console.log(err), (this.isError = true), (this.errorMsg = err)
-            )
-          )
+    checkCalendars() {
+      this.calendarsProp.forEach((calendar) =>
+        this.checkedCalendars.push(calendar.id)
       );
     },
     filterEvents() {
       //Return the events that are in the calendar checked by the user
-      this.eventsFiltered = this.events.filter((event) =>
+      this.events = this.eventsProp.filter((event) =>
         this.checkedCalendars.includes(event.calendar)
       );
     },
@@ -500,14 +466,7 @@ export default {
 
 <style scoped lang="scss">
 @import "@/styles/global.scss";
-button {
-  background-color: $base-color;
-  color: white;
-}
-button:hover {
-  background-color: $dark-color;
-  color: white;
-}
+
 h3 {
   margin: 40px 0 0;
 }
@@ -521,5 +480,13 @@ li {
 }
 a {
   color: #42b983;
+}
+
+.offcanvas-header {
+  color: white;
+  background-color: $dark-color;
+  button {
+    background-color: transparent;
+  }
 }
 </style>

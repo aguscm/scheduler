@@ -100,7 +100,7 @@
         role="tabpanel"
         aria-labelledby="v-pills-home-tab"
       >
-        <AdminEvents />
+        <admin-events v-if="events && calendars" :eventsProp="events" :calendarsProp="calendars" />
       </div>
       <div
         class="tab-pane fade"
@@ -116,7 +116,7 @@
         role="tabpanel"
         aria-labelledby="v-pills-messages-tab"
       >
-        ...
+        <admin-calendars :calendarsProp="calendars"/>
       </div>
       <div
         class="tab-pane fade"
@@ -131,12 +131,74 @@
 </template>
 
 <script>
+import API from "@/api/api.js";
 import AdminEvents from "@/components/AdminEvents.vue";
+import AdminCalendars from "@/components/AdminCalendars.vue";
 
 export default {
   name: "Admin",
   components: {
     AdminEvents,
+    AdminCalendars,
+  },
+  data() {
+    return {
+      //Main data
+      events: "",
+      calendars: "",
+
+      //Loading and errors
+      loadingEvents: true,
+      loadingCalendars: true,
+      error: false,
+      errorMsg: "",
+    };
+  },
+  async created() {
+    this.loadCalendars();
+    this.loadEvents();
+  },
+  methods: {
+    async loadCalendars() {
+      this.calendars = "";
+      this.loadingCalendars = true;
+      return (
+        API.getCalendars()
+          .then(
+            (response) => (this.calendars = response),
+            (this.loadingCalendars = false)
+          )
+          //If error
+          .catch(
+            (err) => (
+              console.log(err), (this.isError = true), (this.errorMsg = err)
+            )
+          )
+      );
+    },
+    async loadEvents() {
+      //Loads the main foundations database
+      this.events = "";
+      this.loadingEvents = true;
+      return (
+        API.getEvents()
+          .then(
+            (response) => (
+              (this.events = response),
+              (this.loadingEvents = false)
+            )
+          )
+          //If error
+          .catch(
+            (err) => (
+              console.log(err),
+              (this.isError = true),
+              (this.loadingEvents = false),
+              (this.errorMsg = err)
+            )
+          )
+      );
+    },
   },
 };
 </script>
