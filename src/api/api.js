@@ -10,6 +10,18 @@ async function getCalendars() {
     return await res.data;
 }
 
+//Edits a calendar that matches with the ID passed as a parameter
+async function editCalendar(calendarId, calendar) {
+    const res = await axios.put(url + `/calendars/${calendarId}`, calendar);
+    return res;
+}
+
+//Adds a new calendar
+async function newCalendar(calendar) {
+    const res = await axios.post(url + '/calendars/', calendar)
+    return res;
+}
+
 //Gets the events
 async function getEvents() {
     const res = await axios.get(url + '/events');
@@ -22,11 +34,10 @@ async function editEvent(eventId, event) {
     return res;
 }
 
-//Adds a new foundation
+//Adds a new event
 async function newEvent(event) {
-    console.log(event);
     const res = await axios.post(url + '/events/', event)
     return res;
 }
 //EXPORTS
-export default { getCalendars, getEvents, editEvent, newEvent };
+export default { getCalendars, editCalendar, newCalendar, getEvents, editEvent, newEvent };

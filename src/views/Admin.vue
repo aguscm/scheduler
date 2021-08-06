@@ -1,6 +1,6 @@
 <template>
   <div class="row">
-    <nav id="sidebar" class="col-2 col-sm-1 col-lg-2">
+    <nav id="sidebar" class="col-2">
       <div class="d-flex align-items-start admin-list position-fixed">
         <div
           class="nav flex-column nav-pills me-3"
@@ -8,6 +8,7 @@
           role="tablist"
           aria-orientation="vertical"
         >
+          <div class="admin-panel-title mb-5 h5 d-none d-lg-inline">Admin panel</div>
           <button
             class="nav-link active"
             id="v-pills-home-tab"
@@ -22,7 +23,7 @@
               class="icon-logo align-middle"
               :icon="['fa', 'calendar-alt']"
             />
-            <span class="font-weight-bold align-middle d-none d-lg-inline"
+            <span class="ms-3 font-weight-bold align-middle d-none d-lg-inline"
               >Events</span
             >
           </button>
@@ -64,6 +65,7 @@
                 align-middle
                 d-none d-lg-inline
                 position-relative
+                ms-3
               "
               >Requests
             </span>
@@ -83,7 +85,7 @@
               class="icon-logo align-middle"
               :icon="['fa', 'calendar-check']"
             />
-            <span class="font-weight-bold align-middle d-none d-lg-inline"
+            <span class="ms-3 font-weight-bold align-middle d-none d-lg-inline"
               >Calendars</span
             >
           </button>
@@ -91,7 +93,7 @@
       </div>
     </nav>
     <div
-      class="tab-content admin-list col-10 col-sm-11 col-lg-10"
+      class="tab-content admin-list col-10"
       id="v-pills-tabContent"
     >
       <div
@@ -100,7 +102,13 @@
         role="tabpanel"
         aria-labelledby="v-pills-home-tab"
       >
-        <admin-events v-if="events && calendars" :eventsProp="events" :calendarsProp="calendars" />
+        <admin-events
+          v-if="events && calendars"
+          :eventsProp="events"
+          :calendarsProp="calendars"
+          @loadEvents="loadEvents()"
+          @loadCalendars="loadCalendars()"
+        />
       </div>
       <div
         class="tab-pane fade"
@@ -116,7 +124,7 @@
         role="tabpanel"
         aria-labelledby="v-pills-messages-tab"
       >
-        <admin-calendars :calendarsProp="calendars"/>
+        <admin-calendars :calendarsProp="calendars" @loadCalendars="loadCalendars()"/>
       </div>
       <div
         class="tab-pane fade"
@@ -184,8 +192,7 @@ export default {
         API.getEvents()
           .then(
             (response) => (
-              (this.events = response),
-              (this.loadingEvents = false)
+              (this.events = response), (this.loadingEvents = false)
             )
           )
           //If error
@@ -212,7 +219,7 @@ export default {
 }
 
 #sidebar {
-  color: $text-color;
+  color: $dark-color;
   background-color: white;
   padding: 1em 1em 1em 2em !important;
   // margin-right: 1em;
@@ -239,7 +246,6 @@ export default {
     color: $text-color;
   }
   svg {
-    margin-right: 1em;
     font-size: 1.5em;
   }
 }
@@ -255,5 +261,9 @@ export default {
 }
 .nav-link:hover {
   color: $base-color !important;
+}
+
+.admin-panel-title {
+  width: 100%;
 }
 </style>

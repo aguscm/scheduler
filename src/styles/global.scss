@@ -6,7 +6,10 @@ $base-color: #5d81f5;
 $dark-color: #363d54;
 $text-color: rgb(166, 160, 177);
 
-//Global styles
+
+/**
+* Global styles
+**/
 .white-background{
     background-color: $base-color !important;
     color: white !important;
@@ -16,3 +19,20 @@ $text-color: rgb(166, 160, 177);
     background-color: $dark-color !important;
     color: white !important;
 }
+
+//vue-cal
+.vue-cal {
+    background-color: #ffffffa1;
+    border-radius: 0.5em;
+    margin-top: 0.5em;
+    padding: 0.5em;
+  }
+  .vuecal__event {
+    border-radius: 5px;
+    font-size: 0.8em;
+    cursor: pointer;
+  }
+  .vuecal__cell {
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+  }

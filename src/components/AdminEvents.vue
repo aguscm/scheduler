@@ -141,26 +141,28 @@
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="name" class="col-sm-2 col-form-label"
+              <label for="form-name" class="col-sm-2 col-form-label"
                 >Name <span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
                 <input
                   class="form-control"
                   type="text"
+                  id="form-name"
                   v-model="selectedEvent.title"
                   placeholder="Write here the event's name"
                 />
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="name" class="col-sm-2 col-form-label"
+              <label for="form-date" class="col-sm-2 col-form-label"
                 >Date<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
                 <input
                   class="form-control"
                   type="date"
+                  id="form-date"
                   v-model="startDateForm"
                   @change="formatDateInForm()"
                   placeholder="Write here Foundation's name"
@@ -168,12 +170,13 @@
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="name" class="col-sm-2 col-form-label"
+              <label for="form-start-time" class="col-sm-2 col-form-label"
                 >Start time<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
                 <input
                   class="form-control"
+                  id="form-start-time"
                   type="time"
                   v-model="startTimeForm"
                   @change="formatDateInForm()"
@@ -182,17 +185,32 @@
               </div>
             </div>
             <div class="mb-3 row">
-              <label for="name" class="col-sm-2 col-form-label"
+              <label for="form-end-time" class="col-sm-2 col-form-label"
                 >End time<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
                 <input
                   class="form-control"
+                  id="form-end-time"
                   type="time"
                   v-model="endTimeForm"
                   @change="formatDateInForm()"
                   placeholder="Start time"
                 />
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="form-status" class="col-sm-2 col-form-label"
+                >Status<span class="text-danger">*</span></label
+              >
+              <div class="col-sm-10">
+                <select class="form-control" id="form-status">
+                  <option selected value="approved">
+                    <span class="text-danger">Approved</span>
+                  </option>
+                  <option value="pending">Pending approval</option>
+                  <option value="rejected">Rejected</option>
+                </select>
               </div>
             </div>
           </form>
@@ -242,7 +260,7 @@ export default {
   components: { VueCal },
   name: "AdminEvents",
   props: ["eventsProp", "calendarsProp"],
-  emits: ["cal-ready"],
+  emits: ["loadEvents", "loadCalendars"],
   data() {
     return {
       selectedEvent: {
@@ -351,16 +369,16 @@ export default {
 
       return date + "/" + month + "/" + year + "-" + hour + ":" + minutes;
     },
-    //Send a request to the server to create a new foundation
+    //Send a request to the server to create a new event
     newEvent(event) {
       return API.newEvent(event)
-        .then(() => this.loadEvents())
+        .then(() => this.$emit("loadCalendars"))
         .catch((err) => console.log(err));
     },
-    //Send a request to the server to create a new foundation
+    //Send a request to the server to edit an existing event
     editEvent(eventId, event) {
       return API.editEvent(eventId, event)
-        .then(() => this.loadEvents())
+        .then(() => this.$emit("loadCalendars"))
         .catch((err) => console.log(err));
     },
     formatDateInForm() {
@@ -368,7 +386,6 @@ export default {
       this.selectedEvent.end = this.startDateForm + " " + this.endTimeForm;
     },
     async onEventClick(event) {
-      console.log("event id is " + event.id);
       this.loadFormSelectedEvent(event.id);
       this.showModal();
       this.isNewEvent = false; //Changes button of the form in an Edit format
@@ -423,21 +440,29 @@ export default {
         return style.sheet;
       })();
 
-      //For each event of the events data
-      this.events.forEach((event) => {
-        //Adds a new class to the "class" key of the event data
-        event.class = event.class.concat(" calendar" + event.calendar);
+      //For each calendar, it insert a rule with its background color
+      this.calendars.forEach((calendar) => {
+        var styles = ".calendar" + calendar.id + " {";
+        styles += "background-color:" + calendar.color;
+        styles += "!important;";
+        styles += "}";
+        sheet.insertRule(styles, 0);
 
-        //Searchs for the id of the event's calendar and creates a CSS rule for the color of that calendar
-        this.calendars.forEach((calendar) => {
-          if (calendar.id == event.calendar) {
-            var styles = ".calendar" + calendar.id + " {";
-            styles += "background-color:" + calendar.color;
-            styles += "!important;";
-            styles += "}";
+        var stylePending = ".pending-event { border: 5px solid "+calendar.color+" }";
+        sheet.insertRule(stylePending, 0);
 
-            sheet.insertRule(styles, 0);
+        //For each event, it adds the class
+        this.events.forEach((event) => {
+          //Adds a new class to the "class" key of the event data
+          
+          if (event.status == "pending") {
+            event.class = event.class.concat(" pending-event");
+          }else {
+            event.class = event.class.concat(" calendar" + event.calendar);
           }
+          //if (calendar.id == event.calendar) {
+
+          //}
         });
       });
     },
@@ -446,23 +471,6 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-/* // .calendar0 {
-//   background-color: #b97742 !important;
-// } */
-.vue-cal {
-  background-color: #ffffffa1;
-  border-radius: 0.5em;
-  margin-top: 0.5em;
-  padding: 0.5em;
-}
-.vuecal__event {
-  width: 95% !important;
-  border-radius: 5px;
-  margin-right: 2.5%;
-  margin-left: 2.5%;
-}
-</style>
 
 <style scoped lang="scss">
 @import "@/styles/global.scss";
