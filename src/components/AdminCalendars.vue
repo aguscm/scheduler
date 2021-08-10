@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container-fluid">
     <button
       type="button"
       class="btn ms-auto p-2 mb-3 white-background"
@@ -23,7 +23,6 @@
             :style="'background-color:' + calendar.color + ';'"
           />
           <div class="card-body">
-            <h5 class="card-title">{{ calendar.name }}</h5>
             <form class="card-text" action="" >
               <div class="mb-1 row">
                 <label for="name" class="col-sm-12 col-form-label"

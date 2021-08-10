@@ -1,4 +1,5 @@
 <template>
+  <loading v-if="!events || !calendars"></loading>
   <div class="row">
     <nav id="sidebar" class="col-2">
       <div class="d-flex align-items-start admin-list position-fixed">
@@ -8,7 +9,9 @@
           role="tablist"
           aria-orientation="vertical"
         >
-          <div class="admin-panel-title mb-5 h5 d-none d-lg-inline">Admin panel</div>
+          <div class="admin-panel-title mb-5 h5 d-none d-lg-inline">
+            Admin panel
+          </div>
           <button
             class="nav-link active"
             id="v-pills-home-tab"
@@ -43,32 +46,20 @@
                 class="icon-logo align-middle"
                 :icon="['fa', 'clipboard-list']"
               />
+
               <span
                 class="
-                  position-absolute
-                  top-0
-                  start-50
-                  translate-start
-                  p-1
-                  bg-danger
-                  border border-light
-                  rounded-circle
+                  font-weight-bold
+                  align-middle
+                  d-none d-lg-inline
+                  position-relative
+                  ms-3
                 "
-              >
-                <span class="visually-hidden">unread requests</span>
-              </span>
-            </span>
-
-            <span
-              class="
-                font-weight-bold
-                align-middle
-                d-none d-lg-inline
-                position-relative
-                ms-3
-              "
-              >Requests
-            </span>
+                >Requests
+              </span> </span
+            ><span v-if="events" class="badge bg-danger">{{
+              events.filter((event) => event.status == "pending").length
+            }}</span>
           </button>
           <hr />
           <button
@@ -92,10 +83,7 @@
         </div>
       </div>
     </nav>
-    <div
-      class="tab-content admin-list col-10"
-      id="v-pills-tabContent"
-    >
+    <div class="tab-content admin-list col-10" id="v-pills-tabContent">
       <div
         class="tab-pane fade show active"
         id="v-pills-home"
@@ -116,7 +104,12 @@
         role="tabpanel"
         aria-labelledby="v-pills-profile-tab"
       >
-        ...
+        <admin-requests
+          v-if="events && calendars"
+          :eventsProp="events"
+          :calendarsProp="calendars"
+          @loadEvents="loadEvents()"
+        />
       </div>
       <div
         class="tab-pane fade"
@@ -124,15 +117,11 @@
         role="tabpanel"
         aria-labelledby="v-pills-messages-tab"
       >
-        <admin-calendars :calendarsProp="calendars" @loadCalendars="loadCalendars()"/>
-      </div>
-      <div
-        class="tab-pane fade"
-        id="v-pills-settings"
-        role="tabpanel"
-        aria-labelledby="v-pills-settings-tab"
-      >
-        ...
+        <admin-calendars
+          v-if="calendars"
+          :calendarsProp="calendars"
+          @loadCalendars="loadCalendars()"
+        />
       </div>
     </div>
   </div>
@@ -142,12 +131,16 @@
 import API from "@/api/api.js";
 import AdminEvents from "@/components/AdminEvents.vue";
 import AdminCalendars from "@/components/AdminCalendars.vue";
+import AdminRequests from "@/components/AdminRequests.vue";
+import Loading from "@/components/Loading.vue";
 
 export default {
   name: "Admin",
   components: {
     AdminEvents,
     AdminCalendars,
+    AdminRequests,
+    Loading
   },
   data() {
     return {

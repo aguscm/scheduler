@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container-fluid">
     <div class="buttons d-flex">
       <button
         type="button"
@@ -204,8 +204,8 @@
                 >Status<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
-                <select class="form-control" id="form-status">
-                  <option selected value="approved">
+                <select class="form-control" id="form-status" v-model="selectedEvent.status">
+                  <option value="approved">
                     <span class="text-danger">Approved</span>
                   </option>
                   <option value="pending">Pending approval</option>
@@ -426,7 +426,8 @@ export default {
       this.endTimeForm = "";
     },
     async colorEventsWCalendars() {
-      //Creates a CSS Stylesheet
+
+      //1. Creates a CSS Stylesheet
       var sheet = (function () {
         // Create the <style> tag
         var style = document.createElement("style");
@@ -440,7 +441,7 @@ export default {
         return style.sheet;
       })();
 
-      //For each calendar, it insert a rule with its background color
+      //2. For each calendar, it insert a rule with its background color or border color
       this.calendars.forEach((calendar) => {
         var styles = ".calendar" + calendar.id + " {";
         styles += "background-color:" + calendar.color;
@@ -448,22 +449,28 @@ export default {
         styles += "}";
         sheet.insertRule(styles, 0);
 
-        var stylePending = ".pending-event { border: 5px solid "+calendar.color+" }";
+        var stylePending =
+          ".pending-event" +
+          calendar.id +
+          " { border: 5px solid " +
+          calendar.color +
+          " }";
         sheet.insertRule(stylePending, 0);
+      });
 
-        //For each event, it adds the class
-        this.events.forEach((event) => {
-          //Adds a new class to the "class" key of the event data
-          
-          if (event.status == "pending") {
-            event.class = event.class.concat(" pending-event");
-          }else {
-            event.class = event.class.concat(" calendar" + event.calendar);
-          }
-          //if (calendar.id == event.calendar) {
 
-          //}
-        });
+      //3. For each event, it adds the class
+      this.events.forEach((event) => {
+        //Adds a new class to the "class" key of the event data
+
+        if (event.status == "pending") {
+          event.class = event.class.concat(" pending-event" + event.calendar);
+        } else {
+          event.class = event.class.concat(" calendar" + event.calendar);
+        }
+        //if (calendar.id == event.calendar) {
+
+        //}
       });
     },
   },
