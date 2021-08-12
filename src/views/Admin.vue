@@ -1,5 +1,4 @@
 <template>
-  <loading v-if="!events || !calendars"></loading>
   <div class="row">
     <nav id="sidebar" class="col-2">
       <div class="d-flex align-items-start admin-list position-fixed">
@@ -124,7 +123,9 @@
         />
       </div>
     </div>
+    <loading v-if="(!events || !calendars) && !error"></loading>
   </div>
+    
 </template>
 
 <script>
@@ -155,7 +156,7 @@ export default {
       errorMsg: "",
     };
   },
-  async created() {
+  async mounted() {
     this.loadCalendars();
     this.loadEvents();
   },

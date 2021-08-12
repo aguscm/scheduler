@@ -370,15 +370,15 @@ export default {
       return date + "/" + month + "/" + year + "-" + hour + ":" + minutes;
     },
     //Send a request to the server to create a new event
-    newEvent(event) {
+    async newEvent(event) {
       return API.newEvent(event)
-        .then(() => this.$emit("loadCalendars"))
+        .then(() => this.$emit("loadEvents"))
         .catch((err) => console.log(err));
     },
     //Send a request to the server to edit an existing event
-    editEvent(eventId, event) {
+    async editEvent(eventId, event) {
       return API.editEvent(eventId, event)
-        .then(() => this.$emit("loadCalendars"))
+        .then(() => this.$emit("loadEvents"))
         .catch((err) => console.log(err));
     },
     formatDateInForm() {

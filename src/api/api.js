@@ -28,9 +28,21 @@ async function getEvents() {
     return await res.data;
 }
 
-//Edits an event data that matches with the ID passed as a parameter
+//Edits an event that matches with the ID passed as a parameter
 async function editEvent(eventId, event) {
     const res = await axios.put(url + `/events/${eventId}`, event);
+    return res;
+}
+
+//Approves an event that matches with the ID passed as a parameter
+async function approveEvent(eventId) {
+    const res = await axios.put(url + `/events/${eventId}`);
+    return res;
+}
+
+//Rejects an event that matches with the ID passed as a parameter
+async function rejectEvent(eventId) {
+    const res = await axios.put(url + `/events/${eventId}`);
     return res;
 }
 
@@ -40,4 +52,4 @@ async function newEvent(event) {
     return res;
 }
 //EXPORTS
-export default { getCalendars, editCalendar, newCalendar, getEvents, editEvent, newEvent };
+export default { getCalendars, editCalendar, newCalendar, getEvents, editEvent, approveEvent, rejectEvent, newEvent };
