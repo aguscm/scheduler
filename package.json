@@ -25,6 +25,7 @@
     "vue-cal": "^4.2.0",
     "vue-router": "^4.0.0-0",
     "vue3-async-computed": "^3.0.0",
+    "vue3-table-lite": "^1.0.6",
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {

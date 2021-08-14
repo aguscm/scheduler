@@ -59,7 +59,7 @@
                     v-model="calendar.description"
                     placeholder="Write here the calendar's description"
                     class="form-control"
-                    id="exampleFormControlTextarea1"
+                    :id="'form-description'+calendar.id"
                     rows="3"
                   ></textarea>
                 </div>
@@ -87,7 +87,7 @@
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  id="switch-calendar-private"
+                  :id="'switch-calendar-private'+calendar.id"
                   v-model="calendar.private"
                 />
               </div>

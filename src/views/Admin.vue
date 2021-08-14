@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="row me-0">
     <nav id="sidebar" class="col-2">
       <div class="d-flex align-items-start admin-list position-fixed">
         <div
@@ -123,9 +123,8 @@
         />
       </div>
     </div>
-    <loading v-if="(!events || !calendars) && !error"></loading>
+    <loading v-if="(!events || !calendars) && !isError"></loading>
   </div>
-    
 </template>
 
 <script>
@@ -134,74 +133,144 @@ import AdminEvents from "@/components/AdminEvents.vue";
 import AdminCalendars from "@/components/AdminCalendars.vue";
 import AdminRequests from "@/components/AdminRequests.vue";
 import Loading from "@/components/Loading.vue";
-
+import { onMounted, ref, watch } from "vue";
 export default {
-  name: "Admin",
-  components: {
-    AdminEvents,
-    AdminCalendars,
-    AdminRequests,
-    Loading
-  },
-  data() {
-    return {
-      //Main data
-      events: "",
-      calendars: "",
+  //   components: { AdminEvents, AdminCalendars, AdminRequests, Loading },
+  // }
+  components: { AdminEvents, AdminCalendars, AdminRequests, Loading },
+  setup() {
+    var calendars = ref([]);
+    var events = ref([]);
+    var isError = ref(false);
+    var errorMsg = ref("");
+    onMounted(() => {
+      loadCalendars();
+      loadEvents();
+    });
 
-      //Loading and errors
-      loadingEvents: true,
-      loadingCalendars: true,
-      error: false,
-      errorMsg: "",
-    };
-  },
-  async mounted() {
-    this.loadCalendars();
-    this.loadEvents();
-  },
-  methods: {
-    async loadCalendars() {
-      this.calendars = "";
-      this.loadingCalendars = true;
+    watch([calendars, events], () => {
+      if (events.value && calendars.value) {
+        events.value.forEach((event) => {
+          //Adds the calendar name
+          event.calendarName = calendars.value.filter((calendar) => calendar.id == event.calendar)[0].name;
+        });
+      }
+    });
+
+    async function loadCalendars() {
+      calendars.value = "";
       return (
         API.getCalendars()
-          .then(
-            (response) => (this.calendars = response),
-            (this.loadingCalendars = false)
-          )
+          .then((response) => (calendars.value = response))
           //If error
           .catch(
             (err) => (
-              console.log(err), (this.isError = true), (this.errorMsg = err)
+              console.log(err), (isError.value = true), (errorMsg.value = err)
             )
           )
       );
-    },
-    async loadEvents() {
+    }
+    async function loadEvents() {
       //Loads the main foundations database
-      this.events = "";
-      this.loadingEvents = true;
+      events.value = "";
       return (
         API.getEvents()
-          .then(
-            (response) => (
-              (this.events = response), (this.loadingEvents = false)
-            )
-          )
+          .then((response) => (events.value = response))
           //If error
           .catch(
             (err) => (
-              console.log(err),
-              (this.isError = true),
-              (this.loadingEvents = false),
-              (this.errorMsg = err)
+              console.log(err), (isError.value = true), (errorMsg.value = err)
             )
           )
       );
-    },
+    }
+    // expose to template
+    return {
+      calendars,
+      events,
+      isError,
+      errorMsg,
+    };
   },
 };
+// export default {
+//   name: "Admin",
+//   components: {
+//     AdminEvents,
+//     AdminCalendars,
+//     AdminRequests,
+//     Loading,
+//   },
+//   data() {
+//     return {
+//       //Main data
+//       events: "",
+//       calendars: "",
+
+//       //Loading and errors
+//       loadingEvents: true,
+//       loadingCalendars: true,
+//       error: false,
+//       errorMsg: "",
+//     };
+//   },
+//   async mounted() {
+//     this.loadCalendars();
+//     this.loadEvents();
+//     // this.$watch([this.events, this.calendars], () => {
+//     //   if (this.events && this.calendars) {
+//     //     this.events.forEach((event) => {
+//     //       event.calendarName = "aulaDefault";
+//     //     });
+//     //   }
+//     //   console.log(this.events);
+//     // });
+//   },
+//   watch: {
+
+//   },
+//   methods: {
+//     async loadCalendars() {
+//       this.calendars = "";
+//       this.loadingCalendars = true;
+//       return (
+//         API.getCalendars()
+//           .then(
+//             (response) => (this.calendars = response),
+//             (this.loadingCalendars = false)
+//           )
+//           //If error
+//           .catch(
+//             (err) => (
+//               console.log(err), (this.isError = true), (this.errorMsg = err)
+//             )
+//           )
+//       );
+//     },
+//     async loadEvents() {
+//       //Loads the main foundations database
+//       this.events = "";
+//       this.loadingEvents = true;
+//       return (
+//         API.getEvents()
+//           .then(
+//             (response) => (
+//               (this.events = response), (this.loadingEvents = false)
+//             )
+//           )
+//           //If error
+//           .catch(
+//             (err) => (
+//               console.log(err),
+//               (this.isError = true),
+//               (this.loadingEvents = false),
+//               (this.errorMsg = err)
+//             )
+//           )
+//       );
+//     },
+//   },
+// };
 </script>
 
 <style scoped lang="scss">
