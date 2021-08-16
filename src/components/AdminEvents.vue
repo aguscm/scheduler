@@ -1,5 +1,6 @@
 <template>
   <div class="container-fluid">
+    <loading v-if="loading"></loading>
     <div class="buttons d-flex">
       <button
         type="button"
@@ -70,6 +71,7 @@
                 <label class="form-check-label" for="flexSwitchCheckDefault"
                   >Show weekends</label
                 >
+                >
               </div>
             </div>
           </form>
@@ -80,12 +82,13 @@
     <vue-cal
       class="vue-cal"
       :time-from="7 * 60"
-      :time-to="22 * 60"
+      :time-to="21 * 60"
       :time-step="30"
       :disable-views="['years', 'year']"
       :snap-to-time="15"
       :hide-weekends="!showWeekends"
       locale="ca"
+      :selected-date="selectedDayOnCalendarProp"
       :editable-events="{
         title: false,
         drag: true,
@@ -93,8 +96,10 @@
         delete: false,
         create: true,
       }"
+      :drag-to-create-event="false"
       :events="events"
-      @event-drop="onEventDragCreate"
+      @event-duration-change="onEventDurationChange"
+      @event-drop="onEventDrag"
       @event-click="onEventClick"
       @ready="colorEventsWCalendars(), checkCalendars()"
     />
@@ -174,14 +179,22 @@
                 >Start time<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
-                <input
-                  class="form-control"
-                  id="form-start-time"
-                  type="time"
+                <select
+                  class="form-select"
+                  aria-label="Select the hours"
                   v-model="startTimeForm"
                   @change="formatDateInForm()"
-                  placeholder="Start time"
-                />
+                >
+                  <option selected></option>
+                  <option
+                    v-for="hours in 96"
+                    :key="hours"
+                    :value="minutesToHours((hours - 1) * 15)"
+                    @change="formatDateInForm()"
+                  >
+                    {{ minutesToHours((hours - 1) * 15) }}
+                  </option>
+                </select>
               </div>
             </div>
             <div class="mb-3 row">
@@ -189,14 +202,21 @@
                 >End time<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
-                <input
-                  class="form-control"
-                  id="form-end-time"
-                  type="time"
+                <select
+                  class="form-select"
+                  aria-label="Select the hours"
                   v-model="endTimeForm"
                   @change="formatDateInForm()"
-                  placeholder="Start time"
-                />
+                >
+                  <option selected></option>
+                  <option
+                    v-for="hours in 96"
+                    :key="hours"
+                    :value="minutesToHours((hours - 1) * 15)"
+                  >
+                    {{ minutesToHours((hours - 1) * 15) }}
+                  </option>
+                </select>
               </div>
             </div>
             <div class="mb-3 row">
@@ -204,7 +224,11 @@
                 >Status<span class="text-danger">*</span></label
               >
               <div class="col-sm-10">
-                <select class="form-control" id="form-status" v-model="selectedEvent.status">
+                <select
+                  class="form-control"
+                  id="form-status"
+                  v-model="selectedEvent.status"
+                >
                   <option value="approved">
                     <span class="text-danger">Approved</span>
                   </option>
@@ -250,6 +274,7 @@
 <script>
 import API from "@/api/api.js";
 import VueCal from "vue-cal";
+import Loading from "@/components/Loading.vue";
 import { Modal } from "bootstrap";
 import "vue-cal/dist/vuecal.css";
 import "vue-cal/dist/drag-and-drop.js";
@@ -257,10 +282,10 @@ import "vue-cal/dist/i18n/ca.js";
 import "vue-cal/dist/vuecal.css";
 
 export default {
-  components: { VueCal },
+  components: { VueCal, Loading },
   name: "AdminEvents",
-  props: ["eventsProp", "calendarsProp"],
-  emits: ["loadEvents", "loadCalendars"],
+  props: ["eventsProp", "calendarsProp", "selectedDayOnCalendarProp"],
+  emits: ["loadEvents", "loadCalendars", "changeSelectedDayOnCalendar"],
   data() {
     return {
       selectedEvent: {
@@ -277,6 +302,7 @@ export default {
         creationDate: "",
         applicant: "",
       },
+      //Calendar
 
       //Filters
       checkedCalendars: [],
@@ -297,6 +323,7 @@ export default {
       events: this.eventsProp,
       eventsFiltered: "",
       calendars: this.calendarsProp,
+      loading: false,
     };
   },
   watch: {
@@ -371,15 +398,37 @@ export default {
     },
     //Send a request to the server to create a new event
     async newEvent(event) {
-      return API.newEvent(event)
-        .then(() => this.$emit("loadEvents"))
-        .catch((err) => console.log(err));
+      this.loading = true;
+      return (
+        API.newEvent(event)
+          //TO DO
+          //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
+          .then(
+            () => (
+              (this.loading = false),
+              this.$emit("changeSelectedDayOnCalendar", event.start)
+            )
+          )
+          .then(() => this.$emit("loadEvents"))
+          .catch((err) => (console.log(err), (this.loading = false)))
+      );
     },
     //Send a request to the server to edit an existing event
     async editEvent(eventId, event) {
-      return API.editEvent(eventId, event)
-        .then(() => this.$emit("loadEvents"))
-        .catch((err) => console.log(err));
+      this.loading = true;
+      return (
+        API.editEvent(eventId, event)
+          //TO DO
+          //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
+          .then(
+            () => (
+              (this.loading = false),
+              this.$emit("changeSelectedDayOnCalendar", event.start)
+            )
+          )
+          .then(() => this.$emit("loadEvents"))
+          .catch((err) => (console.log(err), (this.loading = false)))
+      );
     },
     formatDateInForm() {
       this.selectedEvent.start = this.startDateForm + " " + this.startTimeForm;
@@ -393,14 +442,21 @@ export default {
       // Prevent navigating to narrower view (default vue-cal behavior).
       //e.stopPropagation();
     },
-    async onEventDragCreate(event) {
-      // let id = await this.api.createEvent(
-      //   event.start,
-      //   event.end
-      // ); /* this returns the assigned id from the database */
-      // event.data = { id: id };
-      // return event;
-      console.log(event.event);
+    onEventDrag(event) {
+      this.loadFormSelectedEvent(event.event.id);
+      this.selectedEvent.start =
+        event.event.start.format() + " " + event.event.start.formatTime();
+      this.selectedEvent.end =
+        event.event.end.format() + " " + event.event.end.formatTime();
+      this.editEvent(this.selectedEvent.id, this.selectedEvent);
+    },
+    onEventDurationChange(event) {
+      this.loadFormSelectedEvent(event.event.id);
+      this.selectedEvent.start =
+        event.event.start.format() + " " + event.event.start.formatTime();
+      this.selectedEvent.end =
+        event.event.end.format() + " " + event.event.end.formatTime();
+      this.editEvent(this.selectedEvent.id, this.selectedEvent);
     },
     async showModal() {
       var eventDetailsModal = new Modal(
@@ -426,7 +482,6 @@ export default {
       this.endTimeForm = "";
     },
     async colorEventsWCalendars() {
-
       //1. Creates a CSS Stylesheet
       var sheet = (function () {
         // Create the <style> tag
@@ -458,7 +513,6 @@ export default {
         sheet.insertRule(stylePending, 0);
       });
 
-
       //3. For each event, it adds the class
       this.events.forEach((event) => {
         //Adds a new class to the "class" key of the event data
@@ -472,6 +526,15 @@ export default {
 
         //}
       });
+    },
+    minutesToHours(min) {
+      var hours = min / 60;
+      var rhours = Math.floor(hours);
+      var minutes = (hours - rhours) * 60;
+      var rminutes = Math.round(minutes);
+      if (rhours < 10) rhours = "0" + rhours;
+      if (rminutes < 10) rminutes = "0" + rminutes;
+      return rhours + ":" + rminutes;
     },
   },
 };

@@ -93,9 +93,12 @@
           v-if="events && calendars"
           :eventsProp="events"
           :calendarsProp="calendars"
+          :selectedDayOnCalendarProp="selectedDayOnCalendar"
           @loadEvents="loadEvents()"
           @loadCalendars="loadCalendars()"
+          @changeSelectedDayOnCalendar="changeSelectedDayOnCalendar"
         />
+        
       </div>
       <div
         class="tab-pane fade"
@@ -143,6 +146,7 @@ export default {
     var events = ref([]);
     var isError = ref(false);
     var errorMsg = ref("");
+    var selectedDayOnCalendar = ref(new Date());
     onMounted(() => {
       loadCalendars();
       loadEvents();
@@ -184,12 +188,21 @@ export default {
           )
       );
     }
+    //Changes the selected day on calendar, useful when dragging or changing events and
+    //re-render the calendar in the day the event has changed
+    async function changeSelectedDayOnCalendar(day) {
+      selectedDayOnCalendar.value = day;
+    }
     // expose to template
     return {
       calendars,
       events,
       isError,
       errorMsg,
+      loadEvents,
+      loadCalendars,
+      selectedDayOnCalendar,
+      changeSelectedDayOnCalendar
     };
   },
 };
