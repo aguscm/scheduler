@@ -28,6 +28,13 @@ async function getEvents() {
     return await res.data;
 }
 
+//Gets today's events
+async function getTodayEvents() {
+    const res = await axios.get(url + '/today/events');
+    return await res.data;
+}
+
+
 //Edits an event that matches with the ID passed as a parameter
 async function editEvent(eventId, event) {
     const res = await axios.put(url + `/events/${eventId}`, event);
@@ -52,4 +59,4 @@ async function newEvent(event) {
     return res;
 }
 //EXPORTS
-export default { getCalendars, editCalendar, newCalendar, getEvents, editEvent, approveEvent, rejectEvent, newEvent };
+export default { getCalendars, editCalendar, newCalendar, getEvents, getTodayEvents, editEvent, approveEvent, rejectEvent, newEvent };

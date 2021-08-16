@@ -14,8 +14,6 @@
         v-for="calendar in calendarsProp"
         :key="calendar.id"
         class="col-12 col-sm-6 col-md-4 col-lg-3 mb-2"
-        @click="tempCalendar = calendar"
-
       >
         <div class="me-2 card">
           <div
@@ -23,7 +21,7 @@
             :style="'background-color:' + calendar.color + ';'"
           />
           <div class="card-body">
-            <form class="card-text" action="" >
+            <form class="card-text" action="">
               <div class="mb-1 row">
                 <label for="name" class="col-sm-12 col-form-label"
                   >Name <span class="text-danger">*</span></label
@@ -59,7 +57,7 @@
                     v-model="calendar.description"
                     placeholder="Write here the calendar's description"
                     class="form-control"
-                    :id="'form-description'+calendar.id"
+                    :id="'form-description' + calendar.id"
                     rows="3"
                   ></textarea>
                 </div>
@@ -87,7 +85,7 @@
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  :id="'switch-calendar-private'+calendar.id"
+                  :id="'switch-calendar-private' + calendar.id"
                   v-model="calendar.private"
                 />
               </div>
@@ -96,7 +94,15 @@
               <button
                 type="button"
                 class="btn white-background me-auto"
-                :class="{disabled : tempCalendar.id != calendar.id || (tempCalendar.id == calendar.id && tempCalendar.name != calendar.name)}"
+                :class="{
+                  disabled:
+                    tempCalendar.id != calendar.id ||
+                    (tempCalendar.id == calendar.id &&
+                      (tempCalendar.name == calendar.name ||
+                        tempCalendar.capacity == calendar.capacity ||
+                        tempCalendar.description == calendar.description ||
+                        tempCalendar.private == calendar.private)),
+                }"
                 @click="editCalendar(calendar.id, calendar)"
               >
                 Save changes
@@ -107,6 +113,7 @@
             </div>
           </div>
         </div>
+        {{tempCalendar}}
       </div>
     </div>
   </div>
@@ -190,7 +197,7 @@
                 type="checkbox"
                 id="switch-calendar-private"
                 v-model="newCalendarForm.private"
-                value=false
+                value="false"
               />
             </div>
           </form>
@@ -203,7 +210,12 @@
           >
             Close
           </button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="newCalendar(newCalendarForm)">
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-dismiss="modal"
+            @click="newCalendar(newCalendarForm)"
+          >
             Create calendar
           </button>
         </div>
@@ -221,7 +233,7 @@ export default {
   created() {},
   data() {
     return {
-      tempCalendar: "",
+      tempCalendar: this.calendarsProp,
       newCalendarForm: {
         name: "",
         capacity: "",

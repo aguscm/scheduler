@@ -1,5 +1,5 @@
 <template>
-  <header id="main-header" class="navbar navbar-expand-lg">
+  <header v-if="$route.meta.header == true" id="main-header" class="navbar navbar-expand-lg">
     <nav class="container-fluid row">
       <div class="navbar-brand col-2">
         <router-link to="/">
@@ -68,6 +68,7 @@ body {
     rgba(226, 233, 245, 1) 0%,
     rgba(215, 221, 232, 1) 100%
   );
+  background-attachment: fixed;
 }
 
 #app {
