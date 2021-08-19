@@ -275,6 +275,7 @@
 import API from "@/api/api.js";
 import VueCal from "vue-cal";
 import Loading from "@/components/Loading.vue";
+import * as bootstrap from "bootstrap";
 import { Modal } from "bootstrap";
 import "vue-cal/dist/vuecal.css";
 import "vue-cal/dist/drag-and-drop.js";
@@ -285,7 +286,12 @@ export default {
   components: { VueCal, Loading },
   name: "AdminEvents",
   props: ["eventsProp", "calendarsProp", "selectedDayOnCalendarProp"],
-  emits: ["loadEvents", "loadCalendars", "changeSelectedDayOnCalendar"],
+  emits: [
+    "loadEvents",
+    "loadCalendars",
+    "changeSelectedDayOnCalendar",
+    "showNotification",
+  ],
   data() {
     return {
       selectedEvent: {
@@ -317,7 +323,10 @@ export default {
       loadingEvents: true,
       loadingCalendars: true,
       error: false,
-      errorMsg: "",
+      errorMsg: {
+        title: "",
+        body: ""
+      },
       /**/
       showDialog: true,
       events: this.eventsProp,
@@ -347,6 +356,7 @@ export default {
       },
     },
   },
+  created() {},
   methods: {
     checkCalendars() {
       this.calendarsProp.forEach((calendar) =>
@@ -427,7 +437,17 @@ export default {
             )
           )
           .then(() => this.$emit("loadEvents"))
-          .catch((err) => (console.log(err), (this.loading = false)))
+          .catch(
+            (err) => (
+              this.errorMsg.title = "Error",
+              this.errorMsg.body = err.response.data.error,
+              console.log(err),
+              console.log(this.errorMsg),
+              this.$emit("showNotification", this.errorMsg),
+              this.$emit("loadEvents"),
+              (this.loading = false)
+            )
+          )
       );
     },
     formatDateInForm() {
@@ -463,6 +483,29 @@ export default {
         document.getElementById("eventDetailsModal")
       );
       eventDetailsModal.toggle();
+    },
+    async showToast() {
+      // var toastLiveExample = document.getElementById('liveToast')
+      // new bootstrap.Toast(toastLiveExample).show();
+      // var toast = new Toast(document.getElementById("liveToast"));
+      // toast.show();
+
+      // var toast = new Toast(document.getElementById("liveToast"));
+      // toast.show();
+
+      var toastLiveExample = document.getElementById("liveToast");
+
+      var toast = new bootstrap.Toast(toastLiveExample);
+      toast.show();
+
+      // var myToastEl = document.getElementById("liveToast");
+      //   var myToast = bootstrap.Toast.getInstance(toast); // Returns a Bootstrap toast instance
+      //   // console.log(myToast);
+      //  myToast.show();
+
+      // var toast = document.getElementById("liveToast");
+      // var myToast = bootstrap.Toast.getInstance(toast); // Returns a Bootstrap toast instance
+      // myToast.show();
     },
     clearSelectedEvent() {
       this.selectedEvent.id = "";

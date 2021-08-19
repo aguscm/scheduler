@@ -97,8 +97,8 @@
           @loadEvents="loadEvents()"
           @loadCalendars="loadCalendars()"
           @changeSelectedDayOnCalendar="changeSelectedDayOnCalendar"
+          @showNotification="showNotification"
         />
-        
       </div>
       <div
         class="tab-pane fade"
@@ -126,7 +126,16 @@
         />
       </div>
     </div>
+
     <loading v-if="(!events || !calendars) && !isError"></loading>
+    <notification :danger=true>
+      <template v-slot:title>
+        {{ textNotification.title }}
+      </template>
+      <template v-slot:body>
+        {{ textNotification.body }}
+      </template>
+    </notification>
   </div>
 </template>
 
@@ -136,16 +145,23 @@ import AdminEvents from "@/components/AdminEvents.vue";
 import AdminCalendars from "@/components/AdminCalendars.vue";
 import AdminRequests from "@/components/AdminRequests.vue";
 import Loading from "@/components/Loading.vue";
+import * as bootstrap from "bootstrap";
 import { onMounted, ref, watch } from "vue";
+import Notification from "../components/Notification.vue";
 export default {
-  //   components: { AdminEvents, AdminCalendars, AdminRequests, Loading },
-  // }
-  components: { AdminEvents, AdminCalendars, AdminRequests, Loading },
+  components: {
+    AdminEvents,
+    AdminCalendars,
+    AdminRequests,
+    Loading,
+    Notification,
+  },
   setup() {
     var calendars = ref([]);
     var events = ref([]);
     var isError = ref(false);
     var errorMsg = ref("");
+    var textNotification = ref({});
     var selectedDayOnCalendar = ref(new Date());
     onMounted(() => {
       loadCalendars();
@@ -156,7 +172,9 @@ export default {
       if (events.value && calendars.value) {
         events.value.forEach((event) => {
           //Adds the calendar name
-          event.calendarName = calendars.value.filter((calendar) => calendar.id == event.calendar)[0].name;
+          event.calendarName = calendars.value.filter(
+            (calendar) => calendar.id == event.calendar
+          )[0].name;
         });
       }
     });
@@ -193,6 +211,15 @@ export default {
     async function changeSelectedDayOnCalendar(day) {
       selectedDayOnCalendar.value = day;
     }
+
+    async function showNotification(message) {
+      textNotification.value = message;
+      var toastLiveExample = document.getElementById("liveToast");
+
+      var toast = new bootstrap.Toast(toastLiveExample);
+      toast.show();
+    }
+
     // expose to template
     return {
       calendars,
@@ -202,88 +229,13 @@ export default {
       loadEvents,
       loadCalendars,
       selectedDayOnCalendar,
-      changeSelectedDayOnCalendar
+      changeSelectedDayOnCalendar,
+      //Notifications
+      showNotification,
+      textNotification,
     };
   },
 };
-// export default {
-//   name: "Admin",
-//   components: {
-//     AdminEvents,
-//     AdminCalendars,
-//     AdminRequests,
-//     Loading,
-//   },
-//   data() {
-//     return {
-//       //Main data
-//       events: "",
-//       calendars: "",
-
-//       //Loading and errors
-//       loadingEvents: true,
-//       loadingCalendars: true,
-//       error: false,
-//       errorMsg: "",
-//     };
-//   },
-//   async mounted() {
-//     this.loadCalendars();
-//     this.loadEvents();
-//     // this.$watch([this.events, this.calendars], () => {
-//     //   if (this.events && this.calendars) {
-//     //     this.events.forEach((event) => {
-//     //       event.calendarName = "aulaDefault";
-//     //     });
-//     //   }
-//     //   console.log(this.events);
-//     // });
-//   },
-//   watch: {
-
-//   },
-//   methods: {
-//     async loadCalendars() {
-//       this.calendars = "";
-//       this.loadingCalendars = true;
-//       return (
-//         API.getCalendars()
-//           .then(
-//             (response) => (this.calendars = response),
-//             (this.loadingCalendars = false)
-//           )
-//           //If error
-//           .catch(
-//             (err) => (
-//               console.log(err), (this.isError = true), (this.errorMsg = err)
-//             )
-//           )
-//       );
-//     },
-//     async loadEvents() {
-//       //Loads the main foundations database
-//       this.events = "";
-//       this.loadingEvents = true;
-//       return (
-//         API.getEvents()
-//           .then(
-//             (response) => (
-//               (this.events = response), (this.loadingEvents = false)
-//             )
-//           )
-//           //If error
-//           .catch(
-//             (err) => (
-//               console.log(err),
-//               (this.isError = true),
-//               (this.loadingEvents = false),
-//               (this.errorMsg = err)
-//             )
-//           )
-//       );
-//     },
-//   },
-// };
 </script>
 
 <style scoped lang="scss">
