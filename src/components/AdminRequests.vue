@@ -184,10 +184,13 @@ export default {
         .catch((err) => console.log(err));
     },
     //Edits an event
-    async editEvent(eventId, event) {
-      return API.editEvent(eventId, event)
-        .then(() => this.$emit("loadEvents"))
-        .catch((err) => console.log(err));
+    // async editEvent(eventId, event) {
+    //   return API.editEvent(eventId, event)
+    //     .then(() => this.$emit("loadEvents"))
+    //     .catch((err) => console.log(err));
+    // },
+    openEditor() {
+      this.$emit("openEditor");
     },
     //TABLE FUNCTIONS
     sort: function (s) {

@@ -96,8 +96,8 @@
           :selectedDayOnCalendarProp="selectedDayOnCalendar"
           @loadEvents="loadEvents()"
           @loadCalendars="loadCalendars()"
-          @changeSelectedDayOnCalendar="changeSelectedDayOnCalendar"
-          @showNotification="showNotification"
+          @openEventDetailsModal="openEventDetailsModal"
+          @editEvent="editEvent"
         />
       </div>
       <div
@@ -127,15 +127,22 @@
       </div>
     </div>
 
-    <loading v-if="(!events || !calendars) && !isError"></loading>
-    <notification :danger=true>
+    <loading v-if="loading || ((!events || !calendars) && !isError)"></loading>
+    <notification :danger="true">
       <template v-slot:title>
-        {{ textNotification.title }}
+        {{ errorMsg.title }}
       </template>
       <template v-slot:body>
-        {{ textNotification.body }}
+        {{ errorMsg.body }}
       </template>
     </notification>
+    <event-details-modal
+      :selectedEventProp="selectedEvent"
+      :calendarsProp="calendars"
+      :isNewEventProp="isNewEvent"
+      @newEvent="newEvent"
+      @editEvent="editEvent"
+    ></event-details-modal>
   </div>
 </template>
 
@@ -148,6 +155,7 @@ import Loading from "@/components/Loading.vue";
 import * as bootstrap from "bootstrap";
 import { onMounted, ref, watch } from "vue";
 import Notification from "../components/Notification.vue";
+import EventDetailsModal from "../components/EventDetailsModal.vue";
 export default {
   components: {
     AdminEvents,
@@ -155,14 +163,34 @@ export default {
     AdminRequests,
     Loading,
     Notification,
+    EventDetailsModal,
   },
   setup() {
     var calendars = ref([]);
     var events = ref([]);
+    var loading = ref(false);
     var isError = ref(false);
-    var errorMsg = ref("");
-    var textNotification = ref({});
+    var errorMsg = ref({
+      title: "",
+      body: "",
+    });
     var selectedDayOnCalendar = ref(new Date());
+    //Modal
+    var selectedEvent = ref({
+      id: "",
+      calendar: "",
+      title: "",
+      start: "",
+      end: "",
+      status: "",
+      class: "",
+      content: "",
+      contentFull: "",
+      icon: "",
+      creationDate: "",
+      applicant: "",
+    });
+    var isNewEvent = ref("");
     onMounted(() => {
       loadCalendars();
       loadEvents();
@@ -213,26 +241,94 @@ export default {
     }
 
     async function showNotification(message) {
-      textNotification.value = message;
+      errorMsg = message;
       var toastLiveExample = document.getElementById("liveToast");
 
       var toast = new bootstrap.Toast(toastLiveExample);
       toast.show();
     }
 
+    async function openEventDetailsModal(event, isNewEventForm) {
+      selectedEvent.value = event;
+      isNewEvent.value = isNewEventForm;
+
+      //Opens modal
+      var eventDetailsModal = new bootstrap.Modal(
+        document.getElementById("eventDetailsModal")
+      );
+      eventDetailsModal.toggle();
+    }
+
+    //Send a request to the server to create a new event
+    async function newEvent(event) {
+      loading.value = true;
+      return API.newEvent(event)
+        .then(
+          () => (
+            (loading.value = false), changeSelectedDayOnCalendar(event.start)
+          )
+        )
+        .then(() => loadEvents())
+        .catch(
+          (err) => (
+            (errorMsg.value.title = "Error"),
+            (errorMsg.value.body = err.response.data.error),
+            showNotification(errorMsg),
+            loadEvents(),
+            (loading.value = false)
+          )
+        );
+    }
+    //Send a request to the server to edit an existing event
+    async function editEvent(eventId, event) {
+      loading.value = true;
+      return (
+        API.editEvent(eventId, event)
+          //TO DO
+          //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
+          .then(
+            () => (
+              (loading.value = false), changeSelectedDayOnCalendar(event.start)
+            )
+          )
+          .then(() => loadEvents())
+          .catch(
+            (err) => (
+              (errorMsg.value.title = "Error"),
+              (errorMsg.value.body = err.response.data.error),
+              showNotification(errorMsg),
+              loadEvents(),
+              (loading.value = false)
+            )
+          )
+      );
+    }
+
     // expose to template
     return {
       calendars,
       events,
+      loading,
       isError,
       errorMsg,
+
+      //Methods
       loadEvents,
       loadCalendars,
+      newEvent,
+      editEvent,
+
+      //To change the day to show in calendar (for re-rendering)
       selectedDayOnCalendar,
       changeSelectedDayOnCalendar,
+
       //Notifications
       showNotification,
-      textNotification,
+
+      //Modal
+      openEventDetailsModal,
+      selectedEvent,
+      isNewEvent,
     };
   },
 };

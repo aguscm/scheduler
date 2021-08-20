@@ -43,13 +43,13 @@ async function editEvent(eventId, event) {
 
 //Approves an event that matches with the ID passed as a parameter
 async function approveEvent(eventId) {
-    const res = await axios.put(url + `/events/${eventId}`);
+    const res = await axios.put(url + `/approve/events/${eventId}`);
     return res;
 }
 
 //Rejects an event that matches with the ID passed as a parameter
 async function rejectEvent(eventId) {
-    const res = await axios.put(url + `/events/${eventId}`);
+    const res = await axios.put(url + `/reject/events/${eventId}`);
     return res;
 }
 

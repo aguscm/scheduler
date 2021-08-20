@@ -5,9 +5,7 @@
       <button
         type="button"
         class="btn p-2 white-background"
-        data-bs-toggle="modal"
-        data-bs-target="#eventDetailsModal"
-        @click="clearSelectedEvent(), (isNewEvent = true)"
+        @click="clearSelectedEvent(), $emit('openEventDetailsModal', selectedEvent, true)"
       >
         <font-awesome-icon :icon="['fa', 'calendar-plus']" /> New event
       </button>
@@ -104,179 +102,12 @@
       @ready="colorEventsWCalendars(), checkCalendars()"
     />
   </div>
-  <!-- //@ready="loadEvents" -->
-  <!-- :events="!loadingEvents ? eventsFiltered : undefined" -->
-  <!-- Modal -->
-  <div
-    class="modal fade"
-    id="eventDetailsModal"
-    tabindex="-1"
-    aria-labelledby="exampleModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Event details</h5>
-          <p v-if="!isNewEvent">
-            Created on {{ formatDate(selectedEvent.creationDate) }}
-          </p>
-        </div>
-        <div class="modal-body">
-          <form action="">
-            <div class="mb-3 row">
-              <label for="calendar" class="col-sm-2 col-form-label"
-                >Calendar<span class="text-danger">*</span></label
-              >
-              <div class="col-sm-10">
-                <select
-                  aria-label="calendar"
-                  name="calendar"
-                  class="form-select mb-3"
-                  v-model="selectedEvent.calendar"
-                >
-                  <option
-                    v-for="calendar in calendars"
-                    :key="calendar.id"
-                    :value="calendar.id"
-                  >
-                    {{ calendar.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="mb-3 row">
-              <label for="form-name" class="col-sm-2 col-form-label"
-                >Name <span class="text-danger">*</span></label
-              >
-              <div class="col-sm-10">
-                <input
-                  class="form-control"
-                  type="text"
-                  id="form-name"
-                  v-model="selectedEvent.title"
-                  placeholder="Write here the event's name"
-                />
-              </div>
-            </div>
-            <div class="mb-3 row">
-              <label for="form-date" class="col-sm-2 col-form-label"
-                >Date<span class="text-danger">*</span></label
-              >
-              <div class="col-sm-10">
-                <input
-                  class="form-control"
-                  type="date"
-                  id="form-date"
-                  v-model="startDateForm"
-                  @change="formatDateInForm()"
-                  placeholder="Write here Foundation's name"
-                />
-              </div>
-            </div>
-            <div class="mb-3 row">
-              <label for="form-start-time" class="col-sm-2 col-form-label"
-                >Start time<span class="text-danger">*</span></label
-              >
-              <div class="col-sm-10">
-                <select
-                  class="form-select"
-                  aria-label="Select the hours"
-                  v-model="startTimeForm"
-                  @change="formatDateInForm()"
-                >
-                  <option selected></option>
-                  <option
-                    v-for="hours in 96"
-                    :key="hours"
-                    :value="minutesToHours((hours - 1) * 15)"
-                    @change="formatDateInForm()"
-                  >
-                    {{ minutesToHours((hours - 1) * 15) }}
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="mb-3 row">
-              <label for="form-end-time" class="col-sm-2 col-form-label"
-                >End time<span class="text-danger">*</span></label
-              >
-              <div class="col-sm-10">
-                <select
-                  class="form-select"
-                  aria-label="Select the hours"
-                  v-model="endTimeForm"
-                  @change="formatDateInForm()"
-                >
-                  <option selected></option>
-                  <option
-                    v-for="hours in 96"
-                    :key="hours"
-                    :value="minutesToHours((hours - 1) * 15)"
-                  >
-                    {{ minutesToHours((hours - 1) * 15) }}
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="mb-3 row">
-              <label for="form-status" class="col-sm-2 col-form-label"
-                >Status<span class="text-danger">*</span></label
-              >
-              <div class="col-sm-10">
-                <select
-                  class="form-control"
-                  id="form-status"
-                  v-model="selectedEvent.status"
-                >
-                  <option value="approved">
-                    <span class="text-danger">Approved</span>
-                  </option>
-                  <option value="pending">Pending approval</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
-            Close
-          </button>
-          <button
-            v-if="isNewEvent"
-            type="button"
-            class="btn btn-primary"
-            data-bs-dismiss="modal"
-            @click="newEvent(selectedEvent)"
-          >
-            Create event
-          </button>
-          <button
-            v-if="!isNewEvent"
-            type="button"
-            class="btn btn-primary"
-            data-bs-dismiss="modal"
-            @click="editEvent(selectedEvent.id, selectedEvent)"
-          >
-            Edit event
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </template>
 
 <script>
-import API from "@/api/api.js";
 import VueCal from "vue-cal";
 import Loading from "@/components/Loading.vue";
-import * as bootstrap from "bootstrap";
-import { Modal } from "bootstrap";
 import "vue-cal/dist/vuecal.css";
 import "vue-cal/dist/drag-and-drop.js";
 import "vue-cal/dist/i18n/ca.js";
@@ -289,8 +120,8 @@ export default {
   emits: [
     "loadEvents",
     "loadCalendars",
-    "changeSelectedDayOnCalendar",
-    "showNotification",
+    "openEventDetailsModal",
+    "editEvent"
   ],
   data() {
     return {
@@ -336,12 +167,6 @@ export default {
     };
   },
   watch: {
-    // events: {
-    //   deep: true,
-    //   handler() {
-    //     this.filterEvents();
-    //   },
-    // },
     loadingEvents: {
       deep: false,
       handler() {
@@ -384,80 +209,14 @@ export default {
           this.selectedEvent.icon = this.events[index].icon;
           this.selectedEvent.creationDate = this.events[index].creationDate;
           this.selectedEvent.applicant = this.events[index].applicant;
-
-          this.startDateForm = this.selectedEvent.start.split(" ")[0];
-          this.startTimeForm = this.selectedEvent.start.split(" ")[1];
-          this.endTimeForm = this.selectedEvent.end.split(" ")[1];
           break;
         }
       }
     },
-    formatDate(time) {
-      var date_ob = new Date(time);
-      let date = date_ob.getDate();
-      let month = date_ob.getMonth() + 1;
-      let year = date_ob.getFullYear();
-
-      let hour = date_ob.getHours();
-      let minutes = date_ob.getMinutes();
-      if (minutes < 10) {
-        minutes = "0" + minutes;
-      }
-
-      return date + "/" + month + "/" + year + "-" + hour + ":" + minutes;
-    },
-    //Send a request to the server to create a new event
-    async newEvent(event) {
-      this.loading = true;
-      return (
-        API.newEvent(event)
-          //TO DO
-          //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
-          .then(
-            () => (
-              (this.loading = false),
-              this.$emit("changeSelectedDayOnCalendar", event.start)
-            )
-          )
-          .then(() => this.$emit("loadEvents"))
-          .catch((err) => (console.log(err), (this.loading = false)))
-      );
-    },
-    //Send a request to the server to edit an existing event
-    async editEvent(eventId, event) {
-      this.loading = true;
-      return (
-        API.editEvent(eventId, event)
-          //TO DO
-          //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
-          .then(
-            () => (
-              (this.loading = false),
-              this.$emit("changeSelectedDayOnCalendar", event.start)
-            )
-          )
-          .then(() => this.$emit("loadEvents"))
-          .catch(
-            (err) => (
-              this.errorMsg.title = "Error",
-              this.errorMsg.body = err.response.data.error,
-              console.log(err),
-              console.log(this.errorMsg),
-              this.$emit("showNotification", this.errorMsg),
-              this.$emit("loadEvents"),
-              (this.loading = false)
-            )
-          )
-      );
-    },
-    formatDateInForm() {
-      this.selectedEvent.start = this.startDateForm + " " + this.startTimeForm;
-      this.selectedEvent.end = this.startDateForm + " " + this.endTimeForm;
-    },
     async onEventClick(event) {
       this.loadFormSelectedEvent(event.id);
-      this.showModal();
-      this.isNewEvent = false; //Changes button of the form in an Edit format
+      //Shows modal with the selected event and isNewEvent = false
+      this.$emit("openEventDetailsModal", this.selectedEvent, false)
 
       // Prevent navigating to narrower view (default vue-cal behavior).
       //e.stopPropagation();
@@ -468,7 +227,7 @@ export default {
         event.event.start.format() + " " + event.event.start.formatTime();
       this.selectedEvent.end =
         event.event.end.format() + " " + event.event.end.formatTime();
-      this.editEvent(this.selectedEvent.id, this.selectedEvent);
+      this.$emit('editEvent', this.selectedEvent.id, this.selectedEvent)
     },
     onEventDurationChange(event) {
       this.loadFormSelectedEvent(event.event.id);
@@ -476,36 +235,7 @@ export default {
         event.event.start.format() + " " + event.event.start.formatTime();
       this.selectedEvent.end =
         event.event.end.format() + " " + event.event.end.formatTime();
-      this.editEvent(this.selectedEvent.id, this.selectedEvent);
-    },
-    async showModal() {
-      var eventDetailsModal = new Modal(
-        document.getElementById("eventDetailsModal")
-      );
-      eventDetailsModal.toggle();
-    },
-    async showToast() {
-      // var toastLiveExample = document.getElementById('liveToast')
-      // new bootstrap.Toast(toastLiveExample).show();
-      // var toast = new Toast(document.getElementById("liveToast"));
-      // toast.show();
-
-      // var toast = new Toast(document.getElementById("liveToast"));
-      // toast.show();
-
-      var toastLiveExample = document.getElementById("liveToast");
-
-      var toast = new bootstrap.Toast(toastLiveExample);
-      toast.show();
-
-      // var myToastEl = document.getElementById("liveToast");
-      //   var myToast = bootstrap.Toast.getInstance(toast); // Returns a Bootstrap toast instance
-      //   // console.log(myToast);
-      //  myToast.show();
-
-      // var toast = document.getElementById("liveToast");
-      // var myToast = bootstrap.Toast.getInstance(toast); // Returns a Bootstrap toast instance
-      // myToast.show();
+      this.$emit('editEvent', this.selectedEvent.id, this.selectedEvent)
     },
     clearSelectedEvent() {
       this.selectedEvent.id = "";
@@ -569,15 +299,6 @@ export default {
 
         //}
       });
-    },
-    minutesToHours(min) {
-      var hours = min / 60;
-      var rhours = Math.floor(hours);
-      var minutes = (hours - rhours) * 60;
-      var rminutes = Math.round(minutes);
-      if (rhours < 10) rhours = "0" + rhours;
-      if (rminutes < 10) rminutes = "0" + rminutes;
-      return rhours + ":" + rminutes;
     },
   },
 };
