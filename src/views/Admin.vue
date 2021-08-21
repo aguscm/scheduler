@@ -153,7 +153,7 @@ import AdminCalendars from "@/components/AdminCalendars.vue";
 import AdminRequests from "@/components/AdminRequests.vue";
 import Loading from "@/components/Loading.vue";
 import * as bootstrap from "bootstrap";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import Notification from "../components/Notification.vue";
 import EventDetailsModal from "../components/EventDetailsModal.vue";
 export default {
@@ -196,16 +196,16 @@ export default {
       loadEvents();
     });
 
-    watch([calendars, events], () => {
-      if (events.value && calendars.value) {
-        events.value.forEach((event) => {
-          //Adds the calendar name
-          event.calendarName = calendars.value.filter(
-            (calendar) => calendar.id == event.calendar
-          )[0].name;
-        });
-      }
-    });
+    // watch([calendars, events], () => {
+    //   if (events.value && calendars.value) {
+    //     events.value.forEach((event) => {
+    //       //Adds the calendar name
+    //       event.calendarName = calendars.value.filter(
+    //         (calendar) => calendar.id == event.calendar
+    //       )[0].name;
+    //     });
+    //   }
+    // });
 
     async function loadCalendars() {
       calendars.value = "";

@@ -75,14 +75,14 @@
                   class="form-select"
                   aria-label="Select the hours"
                   v-model="startTimeForm"
-                  @change="formatDateInForm()"
+                  @change="formatDateInForm(), gethoursEndRemainingInForm()"
+                  :disabled="!startDateForm"
                 >
                   <option selected></option>
                   <option
                     v-for="hours in 96"
                     :key="hours"
                     :value="minutesToHours((hours - 1) * 15)"
-                    @change="formatDateInForm()"
                   >
                     {{ minutesToHours((hours - 1) * 15) }}
                   </option>
@@ -99,14 +99,15 @@
                   aria-label="Select the hours"
                   v-model="endTimeForm"
                   @change="formatDateInForm()"
+                  :disabled="!startTimeForm"
                 >
                   <option selected></option>
                   <option
-                    v-for="hours in 96"
+                    v-for="hours in 96 - hoursEndRemaining-1"
                     :key="hours"
-                    :value="minutesToHours((hours - 1) * 15)"
+                    :value="minutesToHours((hours+hoursEndRemaining) * 15)"
                   >
-                    {{ minutesToHours((hours - 1) * 15) }}
+                    {{ minutesToHours((hours+hoursEndRemaining) * 15) }}
                   </option>
                 </select>
               </div>
@@ -174,7 +175,8 @@ export default {
       startDateForm: "",
       startTimeForm: "",
       endTimeForm: "",
-      selectedEvent: this.selectedEventProp,
+      selectedEvent: "",
+      hoursEndRemaining: 0, //the time left in the form once the user has selected the start time
     };
   },
   watch: {
@@ -182,9 +184,12 @@ export default {
       deep: true,
       handler() {
         this.selectedEvent = this.selectedEventProp;
-        this.startDateForm = this.selectedEvent.start.split(" ")[0];
-        this.startTimeForm = this.selectedEvent.start.split(" ")[1];
-        this.endTimeForm = this.selectedEvent.end.split(" ")[1];
+        if (this.selectedEvent.start)
+          this.startDateForm = this.selectedEvent.start.split(" ")[0];
+        if (this.selectedEvent.start)
+          this.startTimeForm = this.selectedEvent.start.split(" ")[1];
+        if (this.selectedEvent.end)
+          this.endTimeForm = this.selectedEvent.end.split(" ")[1];
       },
     },
   },
@@ -215,6 +220,13 @@ export default {
       }
 
       return date + "/" + month + "/" + year + "-" + hour + ":" + minutes;
+    },
+    gethoursEndRemainingInForm() {
+      if (this.startDateForm) {
+        var hourStart =  parseInt(this.startTimeForm.split(":")[0]);
+        var minuteStart = parseInt(this.startTimeForm.split(":")[1]);
+        this.hoursEndRemaining = hourStart * 4 + minuteStart / 15;
+      }
     },
   },
 };

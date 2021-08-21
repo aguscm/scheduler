@@ -71,12 +71,12 @@
       >
       <div class="col-sm-10">
         <input
-          class="form-control"
+          class="form-control disabled"
           id="form-end-time"
           type="time"
           v-model="endTimeForm"
           @change="formatDateInForm()"
-          placeholder="Start time"
+          placeholder="End time"
         />
       </div>
     </div>
