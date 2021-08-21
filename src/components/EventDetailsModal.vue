@@ -103,11 +103,11 @@
                 >
                   <option selected></option>
                   <option
-                    v-for="hours in 96 - hoursEndRemaining-1"
+                    v-for="hours in 96 - hoursEndRemaining - 1"
                     :key="hours"
-                    :value="minutesToHours((hours+hoursEndRemaining) * 15)"
+                    :value="minutesToHours((hours + hoursEndRemaining) * 15)"
                   >
-                    {{ minutesToHours((hours+hoursEndRemaining) * 15) }}
+                    {{ minutesToHours((hours + hoursEndRemaining) * 15) }}
                   </option>
                 </select>
               </div>
@@ -129,6 +129,30 @@
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
+            </div>
+            <div
+              class="form-check form-switch mb-3 row ms-1"
+              @click="
+                selectedEvent.recurringEvent.isRecurringEvent =
+                  !selectedEvent.recurringEvent.isRecurringEvent
+              "
+            >
+              <label class="form-check-label" for="switch-calendar-private"
+                >Recurring event</label
+              >
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="switch-recurring-event"
+                v-model="selectedEvent.recurringEvent.isRecurringEvent"
+                :value="selectedEvent.recurringEvent.isRecurringEvent"
+              />
+            </div>
+            <div
+              v-if="selectedEvent.recurringEvent.isRecurringEvent"
+              class="recurring-event"
+            >
+              fgsdg
             </div>
           </form>
         </div>
@@ -167,7 +191,6 @@
 <script>
 export default {
   name: "EventDetailsModal",
-  created() {},
   props: ["selectedEventProp", "calendarsProp", "isNewEventProp"],
   emits: ["newEvent", "editEvent"],
   data() {
@@ -178,6 +201,9 @@ export default {
       selectedEvent: "",
       hoursEndRemaining: 0, //the time left in the form once the user has selected the start time
     };
+  },
+  created() {
+    this.selectedEvent = this.selectedEventProp;
   },
   watch: {
     selectedEventProp: {
@@ -190,6 +216,16 @@ export default {
           this.startTimeForm = this.selectedEvent.start.split(" ")[1];
         if (this.selectedEvent.end)
           this.endTimeForm = this.selectedEvent.end.split(" ")[1];
+      },
+    },
+    isNewEventProp: {
+      deep: false,
+      handler() {
+        if (this.isNewEventProp) {
+          this.startDateForm = "";
+          this.startTimeForm = "";
+          this.endTimeForm = "";
+        }
       },
     },
   },
@@ -223,7 +259,7 @@ export default {
     },
     gethoursEndRemainingInForm() {
       if (this.startDateForm) {
-        var hourStart =  parseInt(this.startTimeForm.split(":")[0]);
+        var hourStart = parseInt(this.startTimeForm.split(":")[0]);
         var minuteStart = parseInt(this.startTimeForm.split(":")[1]);
         this.hoursEndRemaining = hourStart * 4 + minuteStart / 15;
       }

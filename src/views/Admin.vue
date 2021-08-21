@@ -153,9 +153,9 @@ import AdminCalendars from "@/components/AdminCalendars.vue";
 import AdminRequests from "@/components/AdminRequests.vue";
 import Loading from "@/components/Loading.vue";
 import * as bootstrap from "bootstrap";
-import { onMounted, ref } from "vue";
 import Notification from "../components/Notification.vue";
 import EventDetailsModal from "../components/EventDetailsModal.vue";
+import { selectedEvent } from "@/mixins/SelectedEvent.js";
 export default {
   components: {
     AdminEvents,
@@ -165,171 +165,124 @@ export default {
     Notification,
     EventDetailsModal,
   },
-  setup() {
-    var calendars = ref([]);
-    var events = ref([]);
-    var loading = ref(false);
-    var isError = ref(false);
-    var errorMsg = ref({
-      title: "",
-      body: "",
-    });
-    var selectedDayOnCalendar = ref(new Date());
-    //Modal
-    var selectedEvent = ref({
-      id: "",
-      calendar: "",
-      title: "",
-      start: "",
-      end: "",
-      status: "",
-      class: "",
-      content: "",
-      contentFull: "",
-      icon: "",
-      creationDate: "",
-      applicant: "",
-    });
-    var isNewEvent = ref("");
-    onMounted(() => {
-      loadCalendars();
-      loadEvents();
-    });
-
-    // watch([calendars, events], () => {
-    //   if (events.value && calendars.value) {
-    //     events.value.forEach((event) => {
-    //       //Adds the calendar name
-    //       event.calendarName = calendars.value.filter(
-    //         (calendar) => calendar.id == event.calendar
-    //       )[0].name;
-    //     });
-    //   }
-    // });
-
-    async function loadCalendars() {
-      calendars.value = "";
+  mixins: [selectedEvent],
+  data() {
+    return {
+      calendars: "",
+      events: "",
+      loading: false,
+      isError: false,
+      errorMsg: {
+        title: "",
+        body: "",
+      },
+      selectedDayOnCalendar: new Date(),
+      isNewEvent: false,
+    };
+  },
+  mounted() {
+    this.loadCalendars();
+    this.loadEvents();
+    
+  },
+  methods: {
+    async loadCalendars() {
+      this.calendars = "";
       return (
         API.getCalendars()
-          .then((response) => (calendars.value = response))
+          .then((response) => (this.calendars = response))
           //If error
           .catch(
             (err) => (
-              console.log(err), (isError.value = true), (errorMsg.value = err)
+              console.log(err), (this.isError = true), (this.errorMsg = err)
             )
           )
       );
-    }
-    async function loadEvents() {
+    },
+    async loadEvents() {
       //Loads the main foundations database
-      events.value = "";
+      this.events = "";
       return (
         API.getEvents()
-          .then((response) => (events.value = response))
+          .then((response) => (this.events = response))
           //If error
           .catch(
             (err) => (
-              console.log(err), (isError.value = true), (errorMsg.value = err)
+              console.log(err), (this.isError = true), (this.errorMsg = err)
             )
           )
       );
-    }
+    },
     //Changes the selected day on calendar, useful when dragging or changing events and
     //re-render the calendar in the day the event has changed
-    async function changeSelectedDayOnCalendar(day) {
-      selectedDayOnCalendar.value = day;
-    }
+    async changeSelectedDayOnCalendar(day) {
+      this.selectedDayOnCalendar = day;
+    },
 
-    async function showNotification(message) {
-      errorMsg = message;
+    async showNotification(message) {
+      this.errorMsg = message;
       var toastLiveExample = document.getElementById("liveToast");
 
       var toast = new bootstrap.Toast(toastLiveExample);
       toast.show();
-    }
+    },
 
-    async function openEventDetailsModal(event, isNewEventForm) {
-      selectedEvent.value = event;
-      isNewEvent.value = isNewEventForm;
+    async openEventDetailsModal(event, isNewEventForm) {
+      // this.selectedEvent = event;
+      this.loadFormSelectedEvent(event.id, this.events);
+      this.isNewEvent = isNewEventForm;
 
       //Opens modal
       var eventDetailsModal = new bootstrap.Modal(
         document.getElementById("eventDetailsModal")
       );
       eventDetailsModal.toggle();
-    }
+    },
 
     //Send a request to the server to create a new event
-    async function newEvent(event) {
-      loading.value = true;
+    async newEvent(event) {
+      this.loading = true;
       return API.newEvent(event)
         .then(
           () => (
-            (loading.value = false), changeSelectedDayOnCalendar(event.start)
+            (this.loading = false), this.changeSelectedDayOnCalendar(event.start)
           )
         )
-        .then(() => loadEvents())
+        .then(() => this.loadEvents())
         .catch(
           (err) => (
-            (errorMsg.value.title = "Error"),
-            (errorMsg.value.body = err.response.data.error),
-            showNotification(errorMsg),
-            loadEvents(),
-            (loading.value = false)
+            (this.errorMsg.title = "Error"),
+            (this.errorMsg.body = err.response.data.error),
+            this.showNotification(this.errorMsg),
+            this.loadEvents(),
+            (this.loading = false)
           )
         );
-    }
+    },
     //Send a request to the server to edit an existing event
-    async function editEvent(eventId, event) {
-      loading.value = true;
+    async editEvent(eventId, event) {
+      this.loading = true;
       return (
         API.editEvent(eventId, event)
           //TO DO
           //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
           .then(
             () => (
-              (loading.value = false), changeSelectedDayOnCalendar(event.start)
+              (this.loading = false), this.changeSelectedDayOnCalendar(event.start)
             )
           )
-          .then(() => loadEvents())
+          .then(() => this.loadEvents())
           .catch(
             (err) => (
-              (errorMsg.value.title = "Error"),
-              (errorMsg.value.body = err.response.data.error),
-              showNotification(errorMsg),
-              loadEvents(),
-              (loading.value = false)
+              (this.errorMsg.title = "Error"),
+              (this.errorMsg.body = err.response.data.error),
+              this.showNotification(this.errorMsg),
+              this.loadEvents(),
+              (this.loading = false)
             )
           )
       );
     }
-
-    // expose to template
-    return {
-      calendars,
-      events,
-      loading,
-      isError,
-      errorMsg,
-
-      //Methods
-      loadEvents,
-      loadCalendars,
-      newEvent,
-      editEvent,
-
-      //To change the day to show in calendar (for re-rendering)
-      selectedDayOnCalendar,
-      changeSelectedDayOnCalendar,
-
-      //Notifications
-      showNotification,
-
-      //Modal
-      openEventDetailsModal,
-      selectedEvent,
-      isNewEvent,
-    };
   },
 };
 </script>

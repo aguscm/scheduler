@@ -108,6 +108,7 @@
 <script>
 import VueCal from "vue-cal";
 import Loading from "@/components/Loading.vue";
+import { selectedEvent } from "@/mixins/SelectedEvent.js";
 import "vue-cal/dist/vuecal.css";
 import "vue-cal/dist/drag-and-drop.js";
 import "vue-cal/dist/i18n/ca.js";
@@ -115,6 +116,7 @@ import "vue-cal/dist/vuecal.css";
 
 export default {
   components: { VueCal, Loading },
+  mixins: [selectedEvent],
   name: "AdminEvents",
   props: ["eventsProp", "calendarsProp", "selectedDayOnCalendarProp"],
   emits: [
@@ -125,22 +127,6 @@ export default {
   ],
   data() {
     return {
-      selectedEvent: {
-        id: "",
-        calendar: "",
-        title: "",
-        start: "",
-        end: "",
-        status: "",
-        class: "",
-        content: "",
-        contentFull: "",
-        icon: "",
-        creationDate: "",
-        applicant: "",
-      },
-      //Calendar
-
       //Filters
       checkedCalendars: [],
       showWeekends: false,
@@ -194,27 +180,8 @@ export default {
         this.checkedCalendars.includes(event.calendar)
       );
     },
-    loadFormSelectedEvent(id) {
-      this.clearSelectedEvent();
-      for (var index in this.events) {
-        if (this.events[index].id == id) {
-          this.selectedEvent.id = this.events[index].id;
-          this.selectedEvent.calendar = this.events[index].calendar;
-          this.selectedEvent.title = this.events[index].title;
-          this.selectedEvent.start = this.events[index].start;
-          this.selectedEvent.end = this.events[index].end;
-          this.selectedEvent.status = this.events[index].status;
-          this.selectedEvent.content = this.events[index].content;
-          this.selectedEvent.contentFull = this.events[index].contentFull;
-          this.selectedEvent.icon = this.events[index].icon;
-          this.selectedEvent.creationDate = this.events[index].creationDate;
-          this.selectedEvent.applicant = this.events[index].applicant;
-          break;
-        }
-      }
-    },
     async onEventClick(event) {
-      this.loadFormSelectedEvent(event.id);
+      this.loadFormSelectedEvent(event.id, this.events);
       //Shows modal with the selected event and isNewEvent = false
       this.$emit("openEventDetailsModal", this.selectedEvent, false)
 
@@ -222,7 +189,7 @@ export default {
       //e.stopPropagation();
     },
     onEventDrag(event) {
-      this.loadFormSelectedEvent(event.event.id);
+      this.loadFormSelectedEvent(event.event.id, this.events);
       this.selectedEvent.start =
         event.event.start.format() + " " + event.event.start.formatTime();
       this.selectedEvent.end =
@@ -230,29 +197,12 @@ export default {
       this.$emit('editEvent', this.selectedEvent.id, this.selectedEvent)
     },
     onEventDurationChange(event) {
-      this.loadFormSelectedEvent(event.event.id);
+      this.loadFormSelectedEvent(event.event.id, this.events);
       this.selectedEvent.start =
         event.event.start.format() + " " + event.event.start.formatTime();
       this.selectedEvent.end =
         event.event.end.format() + " " + event.event.end.formatTime();
       this.$emit('editEvent', this.selectedEvent.id, this.selectedEvent)
-    },
-    clearSelectedEvent() {
-      this.selectedEvent.id = "";
-      this.selectedEvent.calendar = "";
-      this.selectedEvent.title = "";
-      this.selectedEvent.start = "";
-      this.selectedEvent.end = "";
-      this.selectedEvent.status = "";
-      this.selectedEvent.content = "";
-      this.selectedEvent.contentFull = "";
-      this.selectedEvent.icon = "";
-      this.selectedEvent.creationDate = "";
-      this.selectedEvent.applicant = "";
-
-      this.startDateForm = "";
-      this.startTimeForm = "";
-      this.endTimeForm = "";
     },
     async colorEventsWCalendars() {
       //1. Creates a CSS Stylesheet
