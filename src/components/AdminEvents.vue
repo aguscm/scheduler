@@ -5,7 +5,10 @@
       <button
         type="button"
         class="btn p-2 white-background"
-        @click="clearSelectedEvent(), $emit('openEventDetailsModal', selectedEvent, true)"
+        @click="
+          clearSelectedEvent(),
+            $emit('openEventDetailsModal', selectedEvent, true, false)
+        "
       >
         <font-awesome-icon :icon="['fa', 'calendar-plus']" /> New event
       </button>
@@ -101,8 +104,63 @@
       @event-click="onEventClick"
       @ready="colorEventsWCalendars(), checkCalendars()"
     />
-  </div>
 
+    <div
+      class="modal fade"
+      id="modalConfirmRecurringEvent"
+      tabindex="-1"
+      aria-labelledby="modalConfirmRecurringEvent"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit recurring event</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            Do you want to edit only this event, or only the recurring events
+            from now?
+          </div>
+          <div class="modal-footer">
+            <button
+              @click="
+                toggleRecurringEventModal(),
+                  $emit('openEventDetailsModal', selectedEvent, false, false)
+              "
+              data-bs-dismiss="modal"
+              type="button"
+              class="btn btn-primary mb-1"
+            >
+              Only this event
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="
+                toggleRecurringEventModal(),
+                  $emit('openEventDetailsModal', selectedEvent, false, true)
+              "
+            >
+              Only the events from this event
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -113,18 +171,14 @@ import "vue-cal/dist/vuecal.css";
 import "vue-cal/dist/drag-and-drop.js";
 import "vue-cal/dist/i18n/ca.js";
 import "vue-cal/dist/vuecal.css";
+import * as bootstrap from "bootstrap";
 
 export default {
   components: { VueCal, Loading },
   mixins: [selectedEvent],
   name: "AdminEvents",
   props: ["eventsProp", "calendarsProp", "selectedDayOnCalendarProp"],
-  emits: [
-    "loadEvents",
-    "loadCalendars",
-    "openEventDetailsModal",
-    "editEvent"
-  ],
+  emits: ["loadEvents", "loadCalendars", "openEventDetailsModal", "editEvent"],
   data() {
     return {
       //Filters
@@ -142,7 +196,7 @@ export default {
       error: false,
       errorMsg: {
         title: "",
-        body: ""
+        body: "",
       },
       /**/
       showDialog: true,
@@ -150,6 +204,9 @@ export default {
       eventsFiltered: "",
       calendars: this.calendarsProp,
       loading: false,
+
+      /**/
+      recurringEventModal: "",
     };
   },
   watch: {
@@ -167,7 +224,11 @@ export default {
       },
     },
   },
-  created() {},
+  mounted() {
+    this.recurringEventModal = new bootstrap.Modal(
+      document.getElementById("modalConfirmRecurringEvent")
+    );
+  },
   methods: {
     checkCalendars() {
       this.calendarsProp.forEach((calendar) =>
@@ -181,9 +242,15 @@ export default {
       );
     },
     async onEventClick(event) {
+      //Opens modal if the event is recurring
       this.loadFormSelectedEvent(event.id, this.events);
-      //Shows modal with the selected event and isNewEvent = false
-      this.$emit("openEventDetailsModal", this.selectedEvent, false)
+
+      if (this.selectedEvent.recurringEventId) {
+        this.toggleRecurringEventModal();
+      } else {
+        //Shows modal with the selected event and isNewEvent = false
+        this.$emit("openEventDetailsModal", this.selectedEvent, false, false);
+      }
 
       // Prevent navigating to narrower view (default vue-cal behavior).
       //e.stopPropagation();
@@ -194,7 +261,7 @@ export default {
         event.event.start.format() + " " + event.event.start.formatTime();
       this.selectedEvent.end =
         event.event.end.format() + " " + event.event.end.formatTime();
-      this.$emit('editEvent', this.selectedEvent.id, this.selectedEvent)
+      this.$emit("editEvent", this.selectedEvent.id, this.selectedEvent);
     },
     onEventDurationChange(event) {
       this.loadFormSelectedEvent(event.event.id, this.events);
@@ -202,7 +269,11 @@ export default {
         event.event.start.format() + " " + event.event.start.formatTime();
       this.selectedEvent.end =
         event.event.end.format() + " " + event.event.end.formatTime();
-      this.$emit('editEvent', this.selectedEvent.id, this.selectedEvent)
+      this.$emit("editEvent", this.selectedEvent.id, this.selectedEvent);
+    },
+
+    toggleRecurringEventModal() {
+      this.recurringEventModal.toggle();
     },
     async colorEventsWCalendars() {
       //1. Creates a CSS Stylesheet

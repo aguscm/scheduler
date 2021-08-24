@@ -127,7 +127,11 @@
       </div>
     </div>
 
-    <loading v-if="loading || ((!events || !calendars) && !isError)"></loading>
+    <loading
+      v-if="
+        loading || ((!events || !calendars || !recurringEvents) && !isError)
+      "
+    ></loading>
     <notification :danger="true">
       <template v-slot:title>
         {{ errorMsg.title }}
@@ -140,8 +144,13 @@
       :selectedEventProp="selectedEvent"
       :calendarsProp="calendars"
       :isNewEventProp="isNewEvent"
+      :isRecurringEventProp="isRecurringEvent"
       @newEvent="newEvent"
       @editEvent="editEvent"
+      @deleteEvent="deleteEvent"
+      @newRecurringEvent="newRecurringEvent"
+      @editRecurringEvent="editRecurringEvent"
+      @deleteRecurringEvent="deleteRecurringEvent"
     ></event-details-modal>
   </div>
 </template>
@@ -170,6 +179,7 @@ export default {
     return {
       calendars: "",
       events: "",
+      recurringEvents: "",
       loading: false,
       isError: false,
       errorMsg: {
@@ -178,12 +188,13 @@ export default {
       },
       selectedDayOnCalendar: new Date(),
       isNewEvent: false,
+      isRecurringEvent: false,
     };
   },
   mounted() {
     this.loadCalendars();
     this.loadEvents();
-    
+    this.loadRecurringEvents();
   },
   methods: {
     async loadCalendars() {
@@ -213,6 +224,20 @@ export default {
           )
       );
     },
+    async loadRecurringEvents() {
+      //Loads the main foundations database
+      this.recurringEvents = "";
+      return (
+        API.getEvents()
+          .then((response) => (this.recurringEvents = response))
+          //If error
+          .catch(
+            (err) => (
+              console.log(err), (this.isError = true), (this.errorMsg = err)
+            )
+          )
+      );
+    },
     //Changes the selected day on calendar, useful when dragging or changing events and
     //re-render the calendar in the day the event has changed
     async changeSelectedDayOnCalendar(day) {
@@ -227,10 +252,11 @@ export default {
       toast.show();
     },
 
-    async openEventDetailsModal(event, isNewEventForm) {
+    async openEventDetailsModal(event, isNewEventForm, isRecurringEvent) {
       // this.selectedEvent = event;
       this.loadFormSelectedEvent(event.id, this.events);
       this.isNewEvent = isNewEventForm;
+      this.isRecurringEvent = isRecurringEvent;
 
       //Opens modal
       var eventDetailsModal = new bootstrap.Modal(
@@ -245,7 +271,8 @@ export default {
       return API.newEvent(event)
         .then(
           () => (
-            (this.loading = false), this.changeSelectedDayOnCalendar(event.start)
+            (this.loading = false),
+            this.changeSelectedDayOnCalendar(event.start)
           )
         )
         .then(() => this.loadEvents())
@@ -268,7 +295,8 @@ export default {
           //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
           .then(
             () => (
-              (this.loading = false), this.changeSelectedDayOnCalendar(event.start)
+              (this.loading = false),
+              this.changeSelectedDayOnCalendar(event.start)
             )
           )
           .then(() => this.loadEvents())
@@ -282,7 +310,89 @@ export default {
             )
           )
       );
-    }
+    },
+    //Send a request to the server to edit an existing event
+    async deleteEvent(eventId) {
+      this.loading = true;
+      return (
+        API.deleteEvent(eventId)
+          //TO DO
+          //MIRAR DE ACTUALIZAR INTERNAMENTE EL EVENTO SI TODO OK Y NO ACTUALIZAR TODOS LOS DATOS
+          .then(() => (this.loading = false))
+          .then(() => this.loadEvents())
+          .catch(
+            (err) => (
+              (this.errorMsg.title = "Error"),
+              (this.errorMsg.body = err.response.data.error),
+              this.showNotification(this.errorMsg),
+              this.loadEvents(),
+              (this.loading = false)
+            )
+          )
+      );
+    },
+    //Send a request to the server to create a new event
+    async newRecurringEvent(event) {
+      this.loading = true;
+      return API.newRecurringEvent(event)
+        .then(
+          () => (
+            (this.loading = false),
+            this.changeSelectedDayOnCalendar(event.start)
+          )
+        )
+        .then(() => this.loadEvents())
+        .catch(
+          (err) => (
+            (this.errorMsg.title = "Error"),
+            (this.errorMsg.body = err.response.data.error),
+            this.showNotification(this.errorMsg),
+            this.loadEvents(),
+            (this.loading = false)
+          )
+        );
+    },
+    //Send a request to the server to edit a recurring event
+    async editRecurringEvent(event) {
+      this.loading = true;
+      return API.editRecurringEvent(event.id, event)
+        .then(
+          () => (
+            (this.loading = false),
+            this.changeSelectedDayOnCalendar(event.start)
+          )
+        )
+        .then(() => this.loadEvents())
+        .catch(
+          (err) => (
+            (this.errorMsg.title = "Error"),
+            (this.errorMsg.body = err.response.data.error),
+            this.showNotification(this.errorMsg),
+            this.loadEvents(),
+            (this.loading = false)
+          )
+        );
+    },
+    //Send a request to the server to edit a recurring event
+    async deleteRecurringEvent(eventId) {
+      this.loading = true;
+      return API.deleteRecurringEvent(eventId)
+        .then(
+          () => (
+            (this.loading = false)
+          )
+        )
+        .then(() => this.loadEvents())
+        .catch(
+          (err) => (
+            (this.errorMsg.title = "Error"),
+            (this.errorMsg.body = err.response.data.error),
+            this.showNotification(this.errorMsg),
+            this.loadEvents(),
+            (this.loading = false)
+          )
+        );
+    },
   },
 };
 </script>

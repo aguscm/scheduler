@@ -62,7 +62,6 @@
                   id="form-date"
                   v-model="startDateForm"
                   @change="formatDateInForm()"
-                  placeholder="Write here Foundation's name"
                 />
               </div>
             </div>
@@ -131,11 +130,9 @@
               </div>
             </div>
             <div
+              v-if="isNewEventProp"
               class="form-check form-switch mb-3 row ms-1"
-              @click="
-                selectedEvent.recurringEvent.isRecurringEvent =
-                  !selectedEvent.recurringEvent.isRecurringEvent
-              "
+              @click="isRecurringEvent = !isRecurringEvent"
             >
               <label class="form-check-label" for="switch-calendar-private"
                 >Recurring event</label
@@ -144,15 +141,194 @@
                 class="form-check-input"
                 type="checkbox"
                 id="switch-recurring-event"
-                v-model="selectedEvent.recurringEvent.isRecurringEvent"
-                :value="selectedEvent.recurringEvent.isRecurringEvent"
+                v-model="isRecurringEvent"
+                :value="isRecurringEvent"
               />
             </div>
             <div
-              v-if="selectedEvent.recurringEvent.isRecurringEvent"
-              class="recurring-event"
+              v-if="isRecurringEvent"
+              class="recurring-event border rounded p-3"
             >
-              fgsdg
+              <p class="mb-1">Recurrence pattern</p>
+              <hr class="mt-0" />
+              <div class="row">
+                <!-- <div class="col-3 border-end">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="radio-repeating-pattern"
+                      id="radio-repeating-pattern-weekly"
+                    />
+                    <label
+                      class="form-check-label"
+                      for="radio-repeating-pattern-weekly"
+                    >
+                      Weekly
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="radio-repeating-pattern"
+                      id="radio-repeating-pattern-monthly"
+                    />
+                    <label
+                      class="form-check-label"
+                      for="radio-repeating-pattern-monthly"
+                    >
+                      Monthly
+                    </label>
+                  </div>
+                </div> -->
+                <div class="col-12">
+                  <p>
+                    Repeat every
+                    <input
+                      type="number"
+                      class="form-control d-inline w-25"
+                      aria-describedby="numberWeeks"
+                      v-model="recurringEvent.repeatEvery"
+                    />
+                    weeks on:
+                  </p>
+                  <div class="repeating-week-days">
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        id="checkbox-repeating-weekdays-monday"
+                        value="monday"
+                        v-model="recurringEvent.daysRepeating"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-monday"
+                      >
+                        Monday
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        value="tuesday"
+                        v-model="recurringEvent.daysRepeating"
+                        id="checkbox-repeating-weekdays-tuesday"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-tuesday"
+                      >
+                        Tuesday
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        value="wednesday"
+                        v-model="recurringEvent.daysRepeating"
+                        id="checkbox-repeating-weekdays-wednesday"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-wednesday"
+                      >
+                        Wednesday
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        value="thursday"
+                        v-model="recurringEvent.daysRepeating"
+                        id="checkbox-repeating-weekdays-thursday"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-thursday"
+                      >
+                        Thursday
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        value="friday"
+                        v-model="recurringEvent.daysRepeating"
+                        id="checkbox-repeating-weekdays-friday"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-friday"
+                      >
+                        Friday
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        value="saturday"
+                        v-model="recurringEvent.daysRepeating"
+                        id="checkbox-repeating-weekdays-saturday"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-saturday"
+                      >
+                        Saturday
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="checkbox-repeating-weekdays"
+                        id="checkbox-repeating-weekdays-sunday"
+                        value="sunday"
+                        v-model="recurringEvent.daysRepeating"
+                      />
+                      <label
+                        class="form-check-label"
+                        for="checkbox-repeating-weekdays-sunday"
+                      >
+                        Sunday
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr class="mt-3" />
+              <div class="row">
+                <div class="col-auto">
+                  <label
+                    for="form-recurring-event-end-date"
+                    class="col-form-label"
+                    >End date</label
+                  >
+                </div>
+                <div class="col-auto">
+                  <input
+                    class="form-control"
+                    type="date"
+                    id="form-recurring-event-end-date"
+                    :min="startDateForm"
+                    :disabled="!startDateForm"
+                    v-model="endDateRecurringEvent"
+                  />
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -165,7 +341,7 @@
             Close
           </button>
           <button
-            v-if="isNewEventProp"
+            v-if="isNewEventProp && !isRecurringEvent"
             type="button"
             class="btn btn-primary"
             data-bs-dismiss="modal"
@@ -174,13 +350,51 @@
             Create event
           </button>
           <button
-            v-if="!isNewEventProp"
+            v-if="isNewEventProp && isRecurringEvent"
+            type="button"
+            class="btn btn-primary"
+            @click="
+              formatRecurringEventWeekly(),
+                this.$emit('newRecurringEvent', recurringEvent)
+            "
+          >
+            Create recurring event
+          </button>
+          <button
+            v-if="!isNewEventProp && !isRecurringEvent"
             type="button"
             class="btn btn-primary"
             data-bs-dismiss="modal"
             @click="this.$emit('editEvent', selectedEvent.id, selectedEvent)"
           >
             Edit event
+          </button>
+          <button
+            v-if="!isNewEventProp && isRecurringEvent"
+            type="button"
+            class="btn btn-primary"
+            data-bs-dismiss="modal"
+            @click="this.$emit('editRecurringEvent', selectedEvent.id, selectedEvent)"
+          >
+            Edit recurring events
+          </button>
+          <button
+            v-if="!isNewEventProp && isRecurringEvent"
+            type="button"
+            class="btn btn-danger"
+            data-bs-dismiss="modal"
+            @click="this.$emit('deleteRecurringEvent', selectedEvent.id)"
+          >
+            Delete recurring events
+          </button>
+          <button
+            v-if="!isNewEventProp && !isRecurringEvent"
+            type="button"
+            class="btn btn-danger"
+            data-bs-dismiss="modal"
+            @click="this.$emit('deleteEvent', selectedEvent.id)"
+          >
+            Delete event
           </button>
         </div>
       </div>
@@ -191,8 +405,13 @@
 <script>
 export default {
   name: "EventDetailsModal",
-  props: ["selectedEventProp", "calendarsProp", "isNewEventProp"],
-  emits: ["newEvent", "editEvent"],
+  props: [
+    "selectedEventProp",
+    "calendarsProp",
+    "isNewEventProp",
+    "isRecurringEventProp",
+  ],
+  emits: ["newEvent", "editEvent", "newRecurringEvent"],
   data() {
     return {
       startDateForm: "",
@@ -200,10 +419,23 @@ export default {
       endTimeForm: "",
       selectedEvent: "",
       hoursEndRemaining: 0, //the time left in the form once the user has selected the start time
+      //Recurring events
+      isRecurringEvent: false,
+      endDateRecurringEvent: "",
+      recurringEvent: {
+        id: "",
+        title: "",
+        calendar: "",
+        start: "",
+        end: "",
+        repeatEvery: 0,
+        daysRepeating: [],
+      },
     };
   },
   created() {
     this.selectedEvent = this.selectedEventProp;
+    this.isRecurringEvent = this.isRecurringEventProp;
   },
   watch: {
     selectedEventProp: {
@@ -226,6 +458,12 @@ export default {
           this.startTimeForm = "";
           this.endTimeForm = "";
         }
+      },
+    },
+    isRecurringEventProp: {
+      deep: false,
+      handler() {
+        this.isRecurringEvent = this.isRecurringEventProp;
       },
     },
   },
@@ -263,6 +501,18 @@ export default {
         var minuteStart = parseInt(this.startTimeForm.split(":")[1]);
         this.hoursEndRemaining = hourStart * 4 + minuteStart / 15;
       }
+    },
+    formatRecurringEventWeekly() {
+      this.recurringEvent.id = this.selectedEvent.id;
+      this.recurringEvent.title = this.selectedEvent.title;
+      this.recurringEvent.calendar = this.selectedEvent.calendar;
+      this.recurringEvent.start = this.startDateForm + " " + this.startTimeForm;
+      this.recurringEvent.end =
+        this.endDateRecurringEvent + " " + this.endTimeForm;
+      this.recurringEvent.repeatEvery = parseInt(
+        this.recurringEvent.repeatEvery
+      );
+      this.recurringEvent.status = this.selectedEvent.status;
     },
   },
 };
